@@ -1,0 +1,41 @@
+// resources/css/_login.scss
+
+.logo {
+    width: 80%;
+    max-width: 500px;
+    height: auto;
+}
+
+.login-right-side {
+    background-color: rgb(12, 17, 44);
+    min-height: 50vh;
+}
+
+/* On tablets and desktops, expand dark side to full height */
+@media (min-width: 992px) {
+    .login-right-side {
+        min-height: 100vh;
+    }
+}
+
+.glass-login-box {
+    width: 100%;
+    max-width: 420px; /* Prevents card from expanding infinitely on wide screens */
+
+    /* Glassmorphism Effect */
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 20px;
+}
+
+.glass-login-box .form-control:focus {
+    box-shadow: 0 0 0 0.25rem rgba(13, 202, 240, 0.25);
+    border-color: rgb(36, 49, 121);
+}
+
+.button-container .btn {
+    background: rgb(36, 49, 121);
+    border-color: rgb(36, 49, 121);
+}

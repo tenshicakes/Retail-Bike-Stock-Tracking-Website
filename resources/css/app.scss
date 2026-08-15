@@ -1,0 +1,51 @@
+
+@import "bootstrap/scss/bootstrap";
+
+@import "login";
+
+@import "dashboard";
+
+.mode-title {
+    min-width: 0;
+    flex: 1 1 180px;
+}
+
+.mode-actions {
+    min-width: 0;
+    flex: 1 1 420px;
+}
+
+.mode-actions .btn,
+.selection-actions .btn {
+    white-space: normal;
+    text-align: center;
+}
+
+.selection-summary {
+    min-width: 0;
+    flex: 1 1 220px;
+}
+
+.selection-actions {
+    min-width: 0;
+    flex: 0 1 auto;
+}
+
+@media (max-width: 768px) {
+    .mode-title,
+    .mode-actions,
+    .selection-summary,
+    .selection-actions {
+        flex-basis: 100%;
+    }
+
+    .mode-actions,
+    .selection-actions {
+        justify-content: stretch;
+    }
+
+    .mode-actions .btn,
+    .selection-actions .btn {
+        flex: 1 1 180px;
+    }
+}
