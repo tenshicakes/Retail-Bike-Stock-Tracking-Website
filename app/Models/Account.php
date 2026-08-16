@@ -55,7 +55,7 @@ class Account extends Authenticatable
 
     public function canEditProducts(): bool
     {
-        return $this->hasRole(['Administrator', 'Owner', 'Mechanic']);
+        return $this->hasRole(['Administrator', 'Owner']);
     }
 
     // 5. Tell Laravel's Auth system to use 'Password' instead of its default 'password' column

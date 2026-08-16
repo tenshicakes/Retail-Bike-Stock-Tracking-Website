@@ -83,3 +83,11 @@ it('filters accounts by username search query', function () {
         ->assertSee('staff_member')
         ->assertDontSee('engineer_one');
 });
+
+it('prevents mechanic accounts from editing products', function () {
+    $mechanic = new Account([
+        'Role' => 'Mechanic',
+    ]);
+
+    expect($mechanic->canEditProducts())->toBeFalse();
+});
