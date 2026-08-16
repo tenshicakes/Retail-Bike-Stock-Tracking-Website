@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\AccountController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Middleware\PreventBackHistory;
@@ -36,7 +37,10 @@ Route::middleware(['auth', PreventBackHistory::class])->group(function () {
     });
 
     Route::middleware('role:Administrator')->group(function () {
-        Route::get('/dashboard/accounts', fn () => view('dashboard.accounts'));
+        Route::get('/dashboard/accounts', [AccountController::class, 'index']);
+        Route::post('/dashboard/accounts', [AccountController::class, 'store']);
+        Route::put('/dashboard/accounts/{account}', [AccountController::class, 'update']);
+        Route::delete('/dashboard/accounts', [AccountController::class, 'destroy']);
     });
 
     Route::get('/logout', [AuthController::class, 'logout']);

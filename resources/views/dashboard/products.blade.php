@@ -39,9 +39,9 @@
                 </div>
 
                 <div class="col-md-5">
-                    <label class="form-label fw-bold text-muted">Filter Sub-category</label>
+                    <label class="form-label fw-bold text-muted">Filter Subcategory</label>
                     <select id="cboSubCategory" class="form-select" disabled>
-                        <option value="">All Sub-categories</option>
+                        <option value="">All Subcategories</option>
                     </select>
                 </div>
 
@@ -236,7 +236,7 @@
                 let cboSub = $('#cboSubCategory');
 
                 if (!cat) {
-                    cboSub.html('<option value="">-- All SubCategories --</option>').prop('disabled', true);
+                    cboSub.html('<option value="">All Subcategories</option>').prop('disabled', true);
                     handleProductFilterChange();
                     return;
                 }
@@ -246,7 +246,7 @@
                     url: '/api/subcategories',
                     data: { category: cat },
                     success: function(data) {
-                        let options = '<option value="">-- All SubCategories --</option>';
+                        let options = '<option value="">All Subcategories</option>';
                         data.forEach(sub => options += `<option value="${sub}">${sub}</option>`);
                         cboSub.html(options);
                         handleProductFilterChange();
@@ -261,7 +261,7 @@
             $('#btnResetFilters').click(function() {
                 $('#txtSearch').val('');
                 $('#cboCategory').val('');
-                $('#cboSubCategory').html('<option value="">-- All SubCategories --</option>').prop('disabled', true);
+                $('#cboSubCategory').html('<option value="">All Subcategories</option>').prop('disabled', true);
                 performSearch();
             });
 

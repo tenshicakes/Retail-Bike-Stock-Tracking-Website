@@ -23,7 +23,7 @@
                 <div class="col-md-4">
                     <label class="form-label fw-bold text-muted">Filter by SubCategory</label>
                     <select name="subcategory" id="cboSubCategory" class="form-select" {{ request('category') ? '' : 'disabled' }}>
-                        <option value="">All Sub-categories</option>
+                        <option value="">All Subcategories</option>
                         </select>
                 </div>
 
@@ -49,7 +49,7 @@
 
             function fetchSubCategories(categoryVal) {
                 if (!categoryVal) {
-                    cboSubCategory.html('<option value="">All Sub-categories</option>').prop('disabled', true);
+                    cboSubCategory.html('<option value="">All Subcategories</option>').prop('disabled', true);
                     return;
                 }
 
