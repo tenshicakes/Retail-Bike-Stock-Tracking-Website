@@ -15,7 +15,7 @@
                 <th>Stocks</th>
                 <th class="action-col text-end pe-4" style="width: 140px;">Quick Actions</th>
             </tr>
-        </thead>
+            </thead>
         <tbody>
             @forelse($products as $product)
                 <tr data-id="{{ $product->ProductID }}" 
@@ -41,7 +41,7 @@
                         <span class="badge bg-light text-secondary border">{{ $product->SubCategory ?? 'N/A' }}</span>
                     </td>
 
-                    <td class="fw-semibold text-success">₱{{ number_format($product->Price, 2) }}</td>
+                    <td class="fw-semibold" style="color: var(--price-blue);">₱{{ number_format($product->Price, 2) }}</td>
 
                     <td>
                         <span class="badge {{ $product->Stocks > 5 ? 'bg-success-subtle text-success' : 'bg-danger-subtle text-danger' }} border px-2 py-1">

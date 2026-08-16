@@ -39,30 +39,38 @@
                         <span class="ms-3 sidebar-text">Products</span>
                     </a>
                 </li>
-                <li class="nav-item">
-                    <a href="/dashboard/lowstock" class="nav-link sidebar-link d-flex align-items-center">
-                        <i class="bi bi-exclamation-triangle fs-5 "></i>
-                        <span class="ms-3 sidebar-text">Low Stock</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="/dashboard/nostock" class="nav-link sidebar-link d-flex align-items-center">
-                        <i class="bi bi-x-circle fs-5 "></i>
-                        <span class="ms-3 sidebar-text">No Stock</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="/dashboard/logs" class="nav-link sidebar-link d-flex align-items-center">
-                        <i class="bi bi-journal-text fs-5"></i>
-                        <span class="ms-3 sidebar-text">Logs</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="/dashboard/accounts" class="nav-link sidebar-link d-flex align-items-center">
-                        <i class="bi bi-people fs-5"></i>
-                        <span class="ms-3 sidebar-text">Accounts</span>
-                    </a>
-                </li>
+                @if(Auth::check() && Auth::user()->canAccessPage('lowstock'))
+                    <li class="nav-item">
+                        <a href="/dashboard/lowstock" class="nav-link sidebar-link d-flex align-items-center">
+                            <i class="bi bi-exclamation-triangle fs-5 "></i>
+                            <span class="ms-3 sidebar-text">Low Stock</span>
+                        </a>
+                    </li>
+                @endif
+                @if(Auth::check() && Auth::user()->canAccessPage('nostock'))
+                    <li class="nav-item">
+                        <a href="/dashboard/nostock" class="nav-link sidebar-link d-flex align-items-center">
+                            <i class="bi bi-x-circle fs-5 "></i>
+                            <span class="ms-3 sidebar-text">No Stock</span>
+                        </a>
+                    </li>
+                @endif
+                @if(Auth::check() && Auth::user()->canAccessPage('logs'))
+                    <li class="nav-item">
+                        <a href="/dashboard/logs" class="nav-link sidebar-link d-flex align-items-center">
+                            <i class="bi bi-journal-text fs-5"></i>
+                            <span class="ms-3 sidebar-text">Logs</span>
+                        </a>
+                    </li>
+                @endif
+                @if(Auth::check() && Auth::user()->canAccessPage('accounts'))
+                    <li class="nav-item">
+                        <a href="/dashboard/accounts" class="nav-link sidebar-link d-flex align-items-center">
+                            <i class="bi bi-people fs-5"></i>
+                            <span class="ms-3 sidebar-text">Accounts</span>
+                        </a>
+                    </li>
+                @endif
             </ul>
 
             <hr class="text-white-50">

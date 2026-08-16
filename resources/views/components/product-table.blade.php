@@ -39,7 +39,7 @@
                             <span class="fw-bold">{{ $product->ProductName }}</span>
                         </div>
                     </td>
-                    <td class="fw-semibold text-success">₱{{ number_format($product->Price, 2) }}</td>
+                    <td class="fw-semibold" style="color: var(--price-blue);">₱{{ number_format($product->Price, 2) }}</td>
                     <td>
                         @if($product->Stocks == 0)
                             <span class="badge bg-danger bg-opacity-10 text-danger px-3 py-2 rounded-pill">0 - No Stock</span>
@@ -50,10 +50,10 @@
                     
                     <td class="pe-4 text-end action-col">
                         <div class="d-inline-flex gap-1">
-                            <button class="btn btn-sm btn-outline-success inline-action" data-action="Stock-In" title="Stock In">
+                            <button class="btn btn-sm btn-outline-success inline-action btn-stock-in-action" data-action="Stock-In" title="Stock In">
                                 <i class="bi bi-plus-lg fw-bold"></i>
                             </button>
-                            <button class="btn btn-sm btn-outline-danger inline-action" data-action="Stock-Out" title="Stock Out">
+                            <button class="btn btn-sm btn-outline-danger inline-action btn-stock-out-action" data-action="Stock-Out" title="Stock Out">
                                 <i class="bi bi-dash-lg fw-bold"></i>
                             </button>
                         </div>
@@ -139,7 +139,7 @@
         // Modal Pagination State
         let modalItems = [];
         let modalCurrentPage = 1;
-        const modalItemsPerPage = 10;
+        const modalItemsPerPage = 5;
 
         if (currentAction) {
             activateSelectionMode(currentAction);

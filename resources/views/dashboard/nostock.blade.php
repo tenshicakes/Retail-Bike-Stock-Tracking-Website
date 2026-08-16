@@ -29,9 +29,9 @@
                 </div>
 
                 <div class="col-md-5">
-                    <label class="form-label fw-bold text-muted">Filter SubCategory</label>
+                    <label class="form-label fw-bold text-muted">Filter Sub-category</label>
                     <select id="cboSubCategory" class="form-select" disabled>
-                        <option value="">All SubCategories</option>
+                        <option value="">All Sub-categories</option>
                     </select>
                 </div>
 
@@ -49,7 +49,7 @@
             <h6 class="m-0 fw-bold text-muted mode-title" id="modeTitle">No Stock Products</h6>
 
             <div class="d-flex gap-2 flex-wrap justify-content-end mode-actions">
-                <button class="btn btn-success fw-bold rounded-pill shadow-sm btn-activate-mode" data-mode="Stock-In">
+                <button class="btn fw-bold rounded-pill shadow-sm btn-activate-mode btn-stock-in-action" data-mode="Stock-In">
                     <i class="bi bi-box-arrow-in-down me-1"></i> Stock-in
                 </button>
             </div>
@@ -116,7 +116,7 @@
             let selectedItems = {};
             let modalItems = [];
             let modalCurrentPage = 1;
-            const modalItemsPerPage = 10;
+            const modalItemsPerPage = 5;
 
             function sanitizeQuantity(rawValue) {
                 let parsed = parseInt(String(rawValue).replace(/[^0-9]/g, ''), 10);

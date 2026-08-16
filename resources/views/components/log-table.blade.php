@@ -16,13 +16,13 @@
         <thead class="table-light text-muted" style="font-size: 0.85rem;">
             <tr>
                 <th class="ps-4 selection-col d-none">SELECT</th>
-                <th class="std-ps">LOG ID</th>
-                <th>DATE</th>
-                <th>ACTION</th>
-                <th>PRODUCT</th>
-                <th>QTY</th>
-                <th>TOTAL PRICE</th>
-                <th class="pe-4 text-end action-col">EXPORT</th>
+                <th class="std-ps">Log ID</th>
+                <th>Date</th>
+                <th>Action</th>
+                <th>Product Name</th>
+                <th>Quantity</th>
+                <th>Total Price</th>
+                <th class="pe-4 text-end action-col">Export</th>
             </tr>
         </thead>
         <tbody>

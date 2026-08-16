@@ -36,7 +36,7 @@ class ProductController extends Controller
             $query->where('SubCategory', $request->subcategory);
         }
 
-        $products = $query->orderBy('ProductName', 'asc')->paginate(10)->withQueryString();
+        $products = $query->orderBy('ProductName', 'asc')->paginate(5)->withQueryString();
 
         return compact('categories', 'categoryMap', 'products');
     }
@@ -126,7 +126,7 @@ class ProductController extends Controller
             $query->where('SubCategory', $request->subcategory);
         }
 
-        $products = $query->orderBy('ProductName', 'asc')->paginate(10)->withQueryString();
+        $products = $query->orderBy('ProductName', 'asc')->paginate(5)->withQueryString();
 
         // REUSING YOUR EXISTING TABLE COMPONENT DIRECTLY HERE:
         return view('components.search-result', compact('products'))->render();

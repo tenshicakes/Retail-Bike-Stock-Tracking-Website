@@ -30,7 +30,7 @@ class LogController extends Controller
         }
 
         // 4. Paginate results
-        $logs = $query->paginate(10)->withQueryString(); // withQueryString remembers filters on page 2!
+        $logs = $query->paginate(5)->withQueryString(); // withQueryString remembers filters on page 2!
 
         return view('dashboard.logs', compact('logs', 'categories'));
     }

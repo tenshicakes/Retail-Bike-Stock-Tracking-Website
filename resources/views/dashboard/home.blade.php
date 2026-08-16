@@ -12,7 +12,7 @@
     <div class="row g-4 mb-5">
         
         <div class="col-md-4">
-            <div class="card shadow-sm border-0 h-100 rounded-4 p-3 bg-white">
+            <div class="card home-stat-card border-0 h-100 rounded-4 p-3 bg-white">
                 <div class="d-flex align-items-center">
                     <div class="bg-primary bg-opacity-10 p-3 rounded-3 text-black me-3">
                         <i class="bi bi-bicycle fs-2"></i>
@@ -26,7 +26,7 @@
         </div>
 
         <div class="col-md-4">
-            <div class="card shadow-sm border-0 h-100 rounded-4 p-3 bg-white">
+            <div class="card home-stat-card border-0 h-100 rounded-4 p-3 bg-white">
                 <div class="d-flex align-items-center">
                     <div class="bg-warning bg-opacity-10 p-3 rounded-3 text-black me-3">
                         <i class="bi bi-exclamation-triangle-fill fs-2"></i>
@@ -40,7 +40,7 @@
         </div>
 
         <div class="col-md-4">
-            <div class="card shadow-sm border-0 h-100 rounded-4 p-3 bg-white">
+            <div class="card home-stat-card border-0 h-100 rounded-4 p-3 bg-white">
                 <div class="d-flex align-items-center">
                     <div class="bg-danger bg-opacity-10 p-3 rounded-3 text-black me-3">
                         <i class="bi bi-x-octagon-fill fs-2"></i>

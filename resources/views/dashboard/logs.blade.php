@@ -1,7 +1,7 @@
 <x-layout>
     
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="fw-bold text-dark m-0">System Activity Logs</h2>
+        <h2 class="fw-bold text-dark m-0">Log History</h2>
     </div>
 
     <div class="card shadow-sm border-0 rounded-4 mb-4">
