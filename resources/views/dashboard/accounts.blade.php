@@ -113,8 +113,11 @@
         </div>
 
         @if($accounts->hasPages())
-            <div class="p-3 border-top bg-white">
-                <div class="d-flex justify-content-center">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 px-4 py-3 border-top bg-white">
+                <div class="small text-muted fw-semibold">
+                    Showing {{ $accounts->firstItem() }} to {{ $accounts->lastItem() }} of {{ $accounts->total() }} results
+                </div>
+                <div>
                     {{ $accounts->links() }}
                 </div>
             </div>
