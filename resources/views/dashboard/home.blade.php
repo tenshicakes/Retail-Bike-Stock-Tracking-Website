@@ -66,6 +66,8 @@
         </div>
     </div>
 
+
+    @push('scripts')
     <script>
         function updateClock() {
             const now = new Date();
@@ -90,5 +92,6 @@
         updateClock();
         setInterval(updateClock, 1000);
     </script>
+    @endpush
 
 </x-layout>
