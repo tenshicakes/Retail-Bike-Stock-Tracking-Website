@@ -85,11 +85,7 @@
                                 <td class="fw-bold text-muted">#{{ $account->UserID }}</td>
                                 <td class="fw-semibold">{{ $account->Username }}</td>
                                 <td>
-                                    <span class="badge rounded-pill px-3 py-2 {{
-                                        $account->Role === 'Administrator' ? 'bg-primary-subtle text-primary' :
-                                        ($account->Role === 'Owner' ? 'bg-info-subtle text-info' :
-                                        ($account->Role === 'Staff' ? 'bg-warning-subtle text-warning' : 'bg-secondary-subtle text-secondary'))
-                                    }}">
+                                    <span class="role-cell">
                                         {{ $account->Role }}
                                     </span>
                                 </td>

@@ -90,6 +90,26 @@ td .text-success,
     color: var(--price-blue) !important;
 }
 
+.price-cell,
+.stock-cell,
+.stock-cell .badge,
+.action-type-cell,
+.action-type-cell .badge,
+.role-cell {
+    color: #000 !important;
+}
+
+.role-cell {
+    background: none !important;
+    padding: 0 !important;
+}
+
+.table td[style*="price-blue"],
+.modal td.text-success,
+.table td .badge {
+    color: #000 !important;
+}
+
 .home-stat-card {
     box-shadow:
         0 10px 18px rgba(34, 56, 84, 0.12),

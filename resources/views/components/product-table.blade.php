@@ -152,7 +152,7 @@
         $('#btnCancelSelection').click(() => deactivateSelectionMode());
 
         // Inline Single Item Shortcut
-        $('.inline-action').click(function() {
+        $(document).on('click', '.inline-action', function() {
             let action = $(this).data('action');
             let tr = $(this).closest('tr');
             
@@ -161,7 +161,8 @@
             selectedItems[tr.data('id')] = {
                 id: tr.data('id'),
                 name: tr.data('name'),
-                price: tr.data('price')
+                price: tr.data('price'),
+                stock: Number(tr.data('stocks') || 0)
             };
             
             currentAction = action;
@@ -271,9 +272,9 @@
                         <td class="text-success">₱${parseFloat(item.price).toFixed(2)}</td>
                         <td style="width: 150px;">
                             <div class="input-group input-group-sm">
-                                <button class="btn btn-outline-secondary btn-qty-minus" data-idx="${globalIndex}">-</button>
+                                <button type="button" class="btn btn-outline-secondary btn-qty-minus" data-idx="${globalIndex}">-</button>
                                 <input type="number" class="form-control text-center qty-input" data-idx="${globalIndex}" value="${safeQty}" min="1" max="${maxQty ?? ''}" inputmode="numeric">
-                                <button class="btn btn-outline-secondary btn-qty-plus" data-idx="${globalIndex}">+</button>
+                                <button type="button" class="btn btn-outline-secondary btn-qty-plus" data-idx="${globalIndex}">+</button>
                             </div>
                         </td>
                         <td class="text-end">
