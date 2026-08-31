@@ -41,12 +41,10 @@
                         <span class="badge bg-light text-secondary border">{{ $product->SubCategory ?? 'N/A' }}</span>
                     </td>
 
-                    <td class="fw-semibold" style="color: var(--price-blue);">₱{{ number_format($product->Price, 2) }}</td>
+                    <td class="fw-semibold text-dark">₱{{ number_format($product->Price, 2) }}</td>
 
-                    <td>
-                        <span class="badge {{ $product->Stocks > 5 ? 'bg-success-subtle text-success' : 'bg-danger-subtle text-danger' }} border px-2 py-1">
-                            {{ $product->Stocks }}
-                        </span>
+                    <td class="text-dark">
+                        {{ $product->Stocks }}
                     </td>
 
                     <td class="action-col text-end pe-4">

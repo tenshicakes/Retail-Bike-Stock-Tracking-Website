@@ -35,10 +35,8 @@
                     
                     <td class="ps-4 fw-bold text-muted std-ps">#{{ $log->LogID }}</td>
                     <td>{{ \Carbon\Carbon::parse($log->LogDate)->format('M d, Y h:i A') }}</td>
-                    <td>
-                        <span class="badge {{ $log->ActionType == 'Stock-In' ? 'bg-success' : 'bg-danger' }} bg-opacity-10 {{ $log->ActionType == 'Stock-In' ? 'text-success' : 'text-danger' }} px-2 py-1 rounded">
-                            {{ $log->ActionType }}
-                        </span>
+                    <td class="text-dark">
+                        {{ $log->ActionType }}
                     </td>
                     <td class="fw-bold">{{ $log->product->ProductName }}</td>
                     <td>{{ $log->Quantity }}</td>
@@ -180,7 +178,7 @@
             Object.values(selectedLogs).forEach(log => {
                 html += `
                     <tr>
-                        <td><span class="badge ${log.action === 'Stock-In' ? 'bg-success' : 'bg-danger'}">${log.action}</span></td>
+                        <td class="text-dark">${log.action}</td>
                         <td class="fw-bold">${log.name}</td>
                         <td>${log.qty}</td>
                         <td>₱${parseFloat(log.total).toFixed(2)}</td>
