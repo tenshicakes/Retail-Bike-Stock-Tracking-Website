@@ -12,6 +12,7 @@ export default defineConfig({
                 "resources/js/accounts-page.js",
                 "resources/js/nostock-page.js",
                 "resources/js/lowstock-page.js",
+                "resources/js/log-page.js",
             ],
             refresh: true,
         }),
