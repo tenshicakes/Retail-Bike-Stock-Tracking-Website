@@ -67,6 +67,9 @@
                     <i class="bi bi-box-arrow-up me-1"></i> Stock-out
                 </button>
                 @if(Auth::check() && Auth::user()->canEditProducts())
+                    <button class="btn btn-dark fw-bold rounded-pill shadow-sm" id="btnOpenAddProductModal">
+                        <i class="bi bi-plus-circle me-1"></i> Add Products
+                    </button>
                     <button class="btn btn-dark fw-bold rounded-pill shadow-sm btn-activate-mode" data-mode="Edit">
                         <i class="bi bi-pencil-square me-1"></i> Edit Products
                     </button>
@@ -116,6 +119,65 @@
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                         <button type="submit" class="btn btn-dark fw-bold" id="btnSaveBulkEdit">
                             <i class="bi bi-check-circle-fill me-1"></i> Save Changes
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="addProductModal" data-bs-backdrop="static" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-light">
+                    <h5 class="modal-title fw-bold"><i class="bi bi-plus-circle me-2"></i>Add Product</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <form id="frmAddProduct">
+                    <div class="modal-body p-4">
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label class="form-label fw-bold text-muted">Product Name</label>
+                                <input type="text" class="form-control" name="ProductName" placeholder="Enter product name" required>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold text-muted">Category</label>
+                                <select class="form-select" id="addProductCategory" name="Category" required>
+                                    <option value="">Select Category</option>
+                                    @foreach($categories as $category)
+                                        <option value="{{ $category }}">{{ $category }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold text-muted">Subcategory</label>
+                                <select class="form-select" id="addProductSubCategory" name="SubCategory" required disabled>
+                                    <option value="">Select Subcategory</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold text-muted">Price</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">₱</span>
+                                    <input type="number" class="form-control" name="Price" step="0.01" min="0" placeholder="0.00" required>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold text-muted">Initial Stock Count</label>
+                                <input type="number" class="form-control" name="Stocks" min="0" step="1" placeholder="0" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer bg-light">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary fw-bold" id="btnSubmitAddProduct">
+                            <i class="bi bi-check-circle-fill me-1"></i> Add Product
                         </button>
                     </div>
                 </form>

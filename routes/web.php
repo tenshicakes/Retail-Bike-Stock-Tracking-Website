@@ -21,6 +21,7 @@ Route::middleware(['auth', PreventBackHistory::class])->group(function () {
     Route::get('/api/subcategories', [App\Http\Controllers\ProductController::class, 'getSubcategories'])->middleware('role:Administrator,Owner,Staff,Mechanic');
 
     Route::get('/dashboard/products', [ProductController::class, 'index'])->middleware('role:Administrator,Owner,Staff,Mechanic');
+    Route::post('/dashboard/products', [ProductController::class, 'store'])->middleware('role:Administrator,Owner');
     Route::get('/api/products/search', [ProductController::class, 'search'])->middleware('role:Administrator,Owner,Staff,Mechanic');
     Route::post('/dashboard/products/bulk-update', [ProductController::class, 'bulkUpdate'])->middleware('role:Administrator,Owner,Mechanic');
 

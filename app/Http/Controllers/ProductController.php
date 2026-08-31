@@ -97,6 +97,49 @@ class ProductController extends Controller
         return view('components.search-result', ['products' => $data['products'], 'showStockOut' => false])->render();
     }
 
+    public function store(Request $request)
+    {
+        $request->validate([
+            'ProductName' => 'required|string|max:255',
+            'Category' => 'required|string|max:100',
+            'SubCategory' => 'required|string|max:100',
+            'Price' => 'required|numeric|min:0',
+            'Stocks' => 'required|integer|min:0',
+        ]);
+
+        $categoryMap = config('bike_categories');
+        $validCategory = $request->Category;
+        $validSubcategory = $request->SubCategory;
+
+        if (!isset($categoryMap[$validCategory]) || !in_array($validSubcategory, $categoryMap[$validCategory], true)) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Please select a valid category and subcategory combination.',
+            ], 422);
+        }
+
+        try {
+            $product = Product::create([
+                'ProductName' => trim($request->ProductName),
+                'Category' => $validCategory,
+                'SubCategory' => $validSubcategory,
+                'Price' => $request->Price,
+                'Stocks' => $request->Stocks,
+            ]);
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Product created successfully.',
+                'product' => $product,
+            ], 201);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to create product: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
     public function getSubcategories(Request $request)
     {
         $category = $request->query('category');

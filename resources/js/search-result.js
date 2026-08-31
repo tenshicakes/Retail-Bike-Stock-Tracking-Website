@@ -523,4 +523,82 @@ $(document).ready(function () {
         currentMode = action;
         openStockModal();
     });
+
+    if ($("#frmAddProduct").length) {
+        function populateAddProductSubcategories(selectedCategory = "") {
+            let subSelect = $("#addProductSubCategory");
+            let subcategories = categoryMap[selectedCategory] || [];
+
+            if (!selectedCategory) {
+                subSelect.html('<option value="">Select Subcategory</option>');
+                subSelect.prop("disabled", true);
+                return;
+            }
+
+            let options = '<option value="">Select Subcategory</option>';
+            subcategories.forEach((sub) => {
+                options += `<option value="${sub}">${sub}</option>`;
+            });
+
+            subSelect.html(options).prop("disabled", false);
+        }
+
+        $("#btnOpenAddProductModal").on("click", function () {
+            $("#frmAddProduct")[0].reset();
+            $("#addProductCategory").val("");
+            populateAddProductSubcategories();
+            new bootstrap.Modal(
+                document.getElementById("addProductModal"),
+            ).show();
+        });
+
+        $("#addProductCategory").on("change", function () {
+            populateAddProductSubcategories($(this).val());
+        });
+
+        $("#frmAddProduct").on("submit", function (e) {
+            e.preventDefault();
+
+            let btn = $("#btnSubmitAddProduct")
+                .prop("disabled", true)
+                .html('<i class="bi bi-arrow-repeat me-1"></i> Adding...');
+
+            $.ajax({
+                url: "/dashboard/products",
+                method: "POST",
+                data: $(this).serialize(),
+                headers: { "X-CSRF-TOKEN": "{{ csrf_token() }}" },
+                success: function (res) {
+                    btn.prop("disabled", false).html(
+                        '<i class="bi bi-check-circle-fill me-1"></i> Add Product',
+                    );
+                    bootstrap.Modal.getInstance(
+                        document.getElementById("addProductModal"),
+                    ).hide();
+                    $("#frmAddProduct")[0].reset();
+                    $("#addProductCategory").val("");
+                    populateAddProductSubcategories();
+                    performSearch();
+                    showAlert(
+                        "Product Added",
+                        res.message || "Product created successfully.",
+                        "success",
+                    );
+                },
+                error: function (xhr) {
+                    btn.prop("disabled", false).html(
+                        '<i class="bi bi-check-circle-fill me-1"></i> Add Product',
+                    );
+                    let message =
+                        xhr.responseJSON?.message ||
+                        "Unable to create the product.";
+                    let errors = xhr.responseJSON?.errors;
+                    if (errors) {
+                        message = Object.values(errors).flat().join(" ");
+                    }
+                    showAlert("Add Product Failed", message, "error");
+                },
+            });
+        });
+    }
 });
