@@ -31,6 +31,7 @@
 
     <div class="card shadow-sm border-0 rounded-4 mb-4">
         <div class="card-body p-4 bg-white rounded-4">
+            <h1 class="pb-4 fw-bold">User Management</h1>
             <div class="row g-3 align-items-end">
                 <div class="col-12">
                     <label class="form-label fw-bold text-muted">Search Username</label>

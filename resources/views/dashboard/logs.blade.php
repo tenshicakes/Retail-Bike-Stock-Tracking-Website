@@ -5,6 +5,7 @@
     </div>
 
     <div class="card shadow-sm border-0 rounded-4 mb-4">
+        
         <div class="card-body p-4 bg-white rounded-4">
             <form id="logsFilterForm" method="GET" action="/dashboard/logs" class="row g-3 align-items-end">
                 

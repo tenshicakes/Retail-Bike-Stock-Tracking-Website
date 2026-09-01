@@ -196,7 +196,15 @@ $(document).ready(function () {
     // Confirm Mode Selection Button
     $("#btnConfirmSelection").click(function () {
         if (Object.keys(selectedItems).length === 0) {
-            return alert("Please select at least one product.");
+            if (window.showToast) {
+                window.showToast(
+                    "Please select at least one product.",
+                    "error",
+                );
+            } else {
+                alert("Please select at least one product.");
+            }
+            return;
         }
 
         if (currentMode === "Edit") {

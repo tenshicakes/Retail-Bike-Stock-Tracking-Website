@@ -112,7 +112,11 @@ $(document).ready(function () {
     // --- MODAL LOGIC ---
     $("#btnConfirmSelection").click(function () {
         if (Object.keys(selectedItems).length === 0) {
-            alert("Please select at least one item.");
+            if (window.showToast) {
+                window.showToast("Please select at least one item.", "error");
+            } else {
+                alert("Please select at least one item.");
+            }
             return;
         }
         openModal();

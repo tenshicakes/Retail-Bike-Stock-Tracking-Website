@@ -162,7 +162,15 @@ $(document).ready(function () {
 
     $("#btnConfirmSelection").click(function () {
         if (Object.keys(selectedItems).length === 0) {
-            return alert("Please select at least one product.");
+            if (window.showToast) {
+                window.showToast(
+                    "Please select at least one product.",
+                    "error",
+                );
+            } else {
+                alert("Please select at least one product.");
+            }
+            return;
         }
 
         if (currentMode === "Stock-In" || currentMode === "Stock-Out") {
@@ -309,11 +317,16 @@ $(document).ready(function () {
         });
 
         if (hasInvalidQty) {
-            alert(
+            const invalidMessage =
                 currentMode === "Stock-Out"
                     ? "Stock-out quantity cannot exceed current stock and must be a positive number."
-                    : "Quantity must be a positive number.",
-            );
+                    : "Quantity must be a positive number.";
+
+            if (window.showToast) {
+                window.showToast(invalidMessage, "error");
+            } else {
+                alert(invalidMessage);
+            }
             renderStockModalTable();
             return;
         }
@@ -347,10 +360,15 @@ $(document).ready(function () {
                     : alert(res.message || "Stock processed successfully!");
             },
             error: function (xhr) {
-                alert(
+                const errorMessage =
                     xhr.responseJSON?.message ||
-                        "Unable to process the stock transaction.",
-                );
+                    "Unable to process the stock transaction.";
+
+                if (window.showToast) {
+                    window.showToast(errorMessage, "error");
+                } else {
+                    alert(errorMessage);
+                }
             },
         });
     });

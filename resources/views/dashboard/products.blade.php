@@ -20,6 +20,7 @@
     <div class="card shadow-sm border-0 rounded-4 mb-4">
         <div class="card-body p-4 bg-white rounded-4">
             <div class="row g-3">
+                <h1 class="pb-2 fw-bold">Products</h1>
                 <div class="col-12">
                     <label class="form-label fw-bold text-muted">Search Product Name</label>
                     <div class="input-group">

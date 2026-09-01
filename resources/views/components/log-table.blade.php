@@ -170,7 +170,14 @@
         });
 
         $('#btnConfirmSelection').click(function() {
-            if (Object.keys(selectedLogs).length === 0) return alert('Select at least one log.');
+            if (Object.keys(selectedLogs).length === 0) {
+                if (window.showToast) {
+                    window.showToast('Select at least one log.', 'error');
+                } else {
+                    alert('Select at least one log.');
+                }
+                return;
+            }
 
             let html = '';
             let inputs = '';
