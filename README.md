@@ -483,15 +483,6 @@ php artisan serve
 npm run dev
 ```
 
-### Default Credentials (from AccountSeeder)
-
-| Username | Password | Role |
-|----------|----------|------|
-| `Juls` | `juls123` | Administrator |
-| `Alvin` | `owner123` | Owner |
-| `Jeremiah Macc` | `staff123` | Staff |
-| `Oggy` | `mech123` | Mechanic |
-
 ---
 
 ## Testing
