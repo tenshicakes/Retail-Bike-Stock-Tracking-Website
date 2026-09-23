@@ -8,13 +8,13 @@ use App\Http\Middleware\PreventBackHistory;
 use App\Http\Controllers\LogController;
 use App\Http\Controllers\ProductController;
 
-// --- GUEST ROUTES (Not logged in) ---
+// --- GUEST ROUTES  ---
 Route::middleware('guest')->group(function () {
     Route::get('/', [AuthController::class, 'showLogin'])->name('login');
     Route::post('/login', [AuthController::class, 'authenticate']);
 });
 
-// --- PROTECTED ROUTES (Must be logged in) ---
+// --- PROTECTED ROUTES  ---
 Route::middleware(['auth', PreventBackHistory::class])->group(function () {
     Route::get('/dashboard/home', [DashboardController::class, 'home']);
     Route::post('/dashboard/process-stock', [DashboardController::class, 'processStock'])->middleware('role:Administrator,Owner,Staff,Mechanic');
