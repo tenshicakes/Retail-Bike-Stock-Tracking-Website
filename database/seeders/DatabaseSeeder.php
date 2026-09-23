@@ -19,7 +19,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             AccountSeeder::class,
             ProductSeeder::class,
-            // You can add ProductSeeder::class here later!
+            
         ]);
     }
 }
