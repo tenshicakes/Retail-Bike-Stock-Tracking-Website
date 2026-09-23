@@ -7,12 +7,12 @@ return new class extends Migration
 {
     public function up(): void
     {
-        // 1. Convert old categories to valid ones (Example mappings)
+
         DB::table('products')->where('Category', 'Bikes')->update(['Category' => 'Whole Bikes']);
         DB::table('products')->where('Category', 'Parts')->update(['Category' => 'Bike Parts']);
         DB::table('products')->where('Category', 'Accs')->update(['Category' => 'Accessories']);
 
-        // 2. Set any null, empty, or unknown categories/subcategories to a default fallback
+
         DB::table('products')
             ->whereNotIn('Category', ['Whole Bikes', 'Bike Parts', 'Accessories'])
             ->orWhereNull('Category')
@@ -21,7 +21,7 @@ return new class extends Migration
                 'SubCategory' => 'Miscellaneous'
             ]);
 
-        // 3. Fix any orphan subcategories that don't match the new list
+    
         DB::table('products')
             ->where('Category', 'Whole Bikes')
             ->whereNotIn('SubCategory', [
@@ -47,6 +47,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        // No rollback required for data normalization
+
     }
 };

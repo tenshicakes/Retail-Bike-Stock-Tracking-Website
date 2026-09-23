@@ -81,7 +81,7 @@
             
         </aside>
 
-        <main class="flex-grow-1 d-flex flex-column w-100 overflow-auto">
+        <main class="grow d-flex flex-column w-100 overflow-auto">
             
             <header class="bg-white shadow-sm p-3 d-flex align-items-center">
                 <button class="btn btn-light border-0" id="sidebarToggle">
