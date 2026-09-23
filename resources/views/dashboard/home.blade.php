@@ -77,9 +77,9 @@
             const ampm = hours >= 12 ? 'PM' : 'AM';
             
             hours = hours % 12;
-            hours = hours ? hours : 12; // the hour '0' should be '12'
+            hours = hours ? hours : 12;
             
-            // Format numbers with leading zeros if needed
+    
             hours = hours < 10 ? '0' + hours : hours;
             minutes = minutes < 10 ? '0' + minutes : minutes;
             seconds = seconds < 10 ? '0' + seconds : seconds;
@@ -88,7 +88,7 @@
             document.getElementById('digitalClock').textContent = timeString;
         }
         
-        // Update the clock immediately, then every 1000ms (1 second)
+
         updateClock();
         setInterval(updateClock, 1000);
     </script>
