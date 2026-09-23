@@ -11,7 +11,7 @@
     min-height: 50vh;
 }
 
-/* On tablets and desktops, expand dark side to full height */
+
 @media (min-width: 992px) {
     .login-right-side {
         min-height: 100vh;
@@ -20,9 +20,9 @@
 
 .glass-login-box {
     width: 100%;
-    max-width: 420px; /* Prevents card from expanding infinitely on wide screens */
+    max-width: 420px; 
 
-    /* Glassmorphism Effect */
+  
     background: rgba(255, 255, 255, 0.08);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);

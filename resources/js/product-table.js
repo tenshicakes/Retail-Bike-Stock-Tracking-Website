@@ -2,13 +2,12 @@ $(document).ready(function () {
     const homeSelectionKey = "bikeShop_home_selected";
     const homeActionKey = "bikeShop_home_action";
 
-    // State Management
     let currentAction = sessionStorage.getItem(homeActionKey) || null;
     let selectedItems = JSON.parse(
         sessionStorage.getItem(homeSelectionKey) || "{}",
     );
 
-    // Modal Pagination State
+    // Pagiantion settings
     let modalItems = [];
     let modalCurrentPage = 1;
     const modalItemsPerPage = 5;
@@ -18,17 +17,16 @@ $(document).ready(function () {
         restoreCheckboxes();
     }
 
-    // --- BUTTON TRIGGERS ---
+    // --- button trigger ---
     $("#btnBatchStockIn").click(() => activateSelectionMode("Stock-In"));
     $("#btnBatchStockOut").click(() => activateSelectionMode("Stock-Out"));
     $("#btnCancelSelection").click(() => deactivateSelectionMode());
 
-    // Inline Single Item Shortcut
+
     $(document).on("click", ".inline-action", function () {
         let action = $(this).data("action");
         let tr = $(this).closest("tr");
 
-        // Clear previous batch and select only this one
         selectedItems = {};
         selectedItems[tr.data("id")] = {
             id: tr.data("id"),
@@ -41,7 +39,7 @@ $(document).ready(function () {
         openModal();
     });
 
-    // --- CHECKBOX LOGIC (Cross-Page Memory) ---
+    // --- CHeckbox function (Cross-Page Memory) ---
     $(".item-checkbox").change(function () {
         let tr = $(this).closest("tr");
         let id = tr.data("id");
@@ -62,7 +60,7 @@ $(document).ready(function () {
         updateFooterCount();
     });
 
-    // --- UI FUNCTIONS ---
+    // --- Ui functions ---
     function activateSelectionMode(action) {
         currentAction = action;
         sessionStorage.setItem(homeActionKey, action);
@@ -109,7 +107,7 @@ $(document).ready(function () {
         $("#selectedCountDisplay").text(Object.keys(selectedItems).length);
     }
 
-    // --- MODAL LOGIC ---
+    // --- form logic ---
     $("#btnConfirmSelection").click(function () {
         if (Object.keys(selectedItems).length === 0) {
             if (window.showToast) {
@@ -126,7 +124,7 @@ $(document).ready(function () {
         $("#modalTitle").text(`Process Transaction: ${currentAction}`);
         $("#logDescription").val("");
 
-        // Convert object dictionary to array and add default quantity
+   
         modalItems = Object.values(selectedItems).map((item) => ({
             ...item,
             quantity: 1,
@@ -140,7 +138,7 @@ $(document).ready(function () {
         modal.show();
     }
 
-    // Render paginated items inside modal
+    // dspaly paginated items 
     function sanitizeQuantity(rawValue, maxAllowed = null) {
         let parsed = parseInt(String(rawValue).replace(/[^0-9]/g, ""), 10);
         if (!Number.isInteger(parsed) || parsed < 1) parsed = 1;
@@ -188,7 +186,7 @@ $(document).ready(function () {
 
         $("#modalTableBody").html(html);
 
-        // Update Pagination UI
+
         let totalPages = Math.ceil(modalItems.length / modalItemsPerPage) || 1;
         $("#modalPageCurrent").text(modalCurrentPage);
         $("#modalPageTotal").text(totalPages);
@@ -196,7 +194,7 @@ $(document).ready(function () {
         $("#modalNextBtn").prop("disabled", modalCurrentPage === totalPages);
     }
 
-    // Modal Table Actions (Event Delegation)
+
     $("#modalTableBody").on("click", ".btn-qty-minus", function () {
         let idx = $(this).data("idx");
         if (modalItems[idx].quantity > 1) {
@@ -225,24 +223,22 @@ $(document).ready(function () {
         let idx = $(this).data("idx");
         let removedId = modalItems[idx].id;
 
-        // Remove from modal array
         modalItems.splice(idx, 1);
 
-        // Remove from current selection state
+        // Remove from current selection 
         delete selectedItems[removedId];
         updateFooterCount();
 
         // Uncheck box in main UI if visible
         $(`.item-checkbox[value='${removedId}']`).prop("checked", false);
-
-        // Adjust pagination if we deleted the last item on a page
+        
         let totalPages = Math.ceil(modalItems.length / modalItemsPerPage) || 1;
         if (modalCurrentPage > totalPages) modalCurrentPage = totalPages;
 
         renderModalTable();
     });
 
-    // Modal Pagination Buttons
+    //pagination buttons
     $("#modalPrevBtn").click(() => {
         modalCurrentPage--;
         renderModalTable();
@@ -252,7 +248,7 @@ $(document).ready(function () {
         renderModalTable();
     });
 
-    // --- SUBMIT TO BACKEND VIA AJAX ---
+    // --- ajax ---
     $("#btnSubmitTransaction").click(function () {
         let btn = $(this);
         let hasInvalidQty = false;
@@ -295,7 +291,6 @@ $(document).ready(function () {
                 window.showToast(response.message, "success");
                 deactivateSelectionMode();
 
-                // Delay the reload by 1.5 seconds so they can see the popup
                 setTimeout(() => {
                     location.reload();
                 }, 1500);

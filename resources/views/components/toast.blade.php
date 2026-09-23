@@ -11,17 +11,15 @@
 </div>
 
 <script>
-    // Global function you can call from anywhere in your app
+    
     window.showToast = function(message, type = 'success') {
         const toastEl = document.getElementById('systemToast');
         const toastMessage = document.getElementById('toastMessage');
         const toastIcon = document.getElementById('toastIcon');
 
-        // Reset styling
         toastEl.classList.remove('bg-success', 'bg-danger', 'bg-warning', 'bg-info');
-        toastIcon.className = 'fs-5 me-2'; // Reset icon classes
+        toastIcon.className = 'fs-5 me-2'; 
 
-        // Apply specific styles based on type
         if (type === 'success') {
             toastEl.classList.add('bg-success');
             toastIcon.classList.add('bi', 'bi-check-circle-fill');
@@ -33,7 +31,7 @@
             toastIcon.classList.add('bi', 'bi-info-circle-fill');
         }
 
-        // Set message and show
+        // show message
         toastMessage.textContent = message;
         const toast = new bootstrap.Toast(toastEl, { delay: 3000 });
         toast.show();

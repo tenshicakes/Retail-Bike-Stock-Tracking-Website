@@ -13,19 +13,18 @@ class DashboardController extends Controller
 {
     public function home()
     {
-        // 1. Calculate the counters
+        // counter labels
         $totalProducts = Product::count();
         $lowStocks = Product::where('Stocks', '<=', 2)->where('Stocks', '>', 0)->count();
         $noStocks = Product::where('Stocks', 0)->count();
 
-        // 2. Fetch products with Pagination (e.g., 5 items per page)
+        // 2. get the products in paginated way
         $products = Product::latest()->paginate(5);
 
-        // 3. Pass all this data to the view
+        // pass the data to the page
         return view('dashboard.home', compact('totalProducts', 'lowStocks', 'noStocks', 'products'));
     }
 
-    // --- NEW METHOD ---
     public function processStock(Request $request)
     {
         $request->validate([
@@ -34,19 +33,19 @@ class DashboardController extends Controller
             'items' => 'required|array',
         ]);
 
-        // Use a database transaction so if one product fails, the whole batch rolls back safely
+        // transaction method so it rollsback if anything happens
         DB::beginTransaction();
 
         try {
             $batchId = Str::uuid()->toString(); // Generate unique Batch ID
             $now = now();
-            $userId = Auth::id(); // Get the currently logged-in user
+            $userId = Auth::id(); // Get whos user is logged in
 
             foreach ($request->items as $item) {
                 $product = Product::findOrFail($item['id']);
                 $qty = (int) $item['quantity'];
 
-                // 1. Update Product Stock
+                // Update Product Stock
                 if ($request->actionType === 'Stock-In') {
                     $product->Stocks += $qty;
                 } else {
@@ -58,14 +57,14 @@ class DashboardController extends Controller
                 }
                 $product->save();
 
-                // 2. Insert into Logs Table
+                // Insert into Logs Table
                 Log::create([
                     'UserID' => $userId,
                     'ProductID' => $product->ProductID,
                     'ActionType' => $request->actionType,
                     'Quantity' => $qty,
                     'UnitPrice' => $product->Price,
-                    'TotalPrice' => $qty * $product->Price, // Calculated individually
+                    'TotalPrice' => $qty * $product->Price, 
                     'LogDate' => $now,
                     'LogDescription' => $request->description,
                     'BatchID' => $batchId

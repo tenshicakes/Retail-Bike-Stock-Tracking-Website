@@ -1,7 +1,7 @@
 
 
 
-// Import jQuery and bind to window so it's accessible globally
+// Import jQuery 
 import $ from 'jquery';
 window.$ = window.jQuery = $
 
