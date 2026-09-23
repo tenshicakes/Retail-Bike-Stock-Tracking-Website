@@ -108,7 +108,7 @@
                 sessionStorage.removeItem('bikeShop_exportLogs');
             }
 
-            // Open sidebar (or toggle on desktop)
+            // Open sidebar 
             $('#sidebarToggle').click(function() {
                 if ($(window).width() <= 768) {
                     $('#sidebar').addClass('mobile-show'); // Slide in
