@@ -1,0 +1,31 @@
+FLOW IN CLONING THE RETAIL BIKE STOCK TRACKING WEBSITE
+# 1. Clone the repository
+git clone <your-repo-url>
+cd ELEC3_Montalan
+
+# 2. Install PHP dependencies
+composer install
+
+# 3. Configure environment
+cp .env.example .env
+php artisan key:generate
+
+# 4. Verify SQLite database exists (it's committed in this repo)
+#    If not: touch database/database.sqlite
+
+# 5. Run migrations
+php artisan migrate --force
+
+# 6. Seed default data (accounts + products)
+php artisan db:seed --class=AccountSeeder
+php artisan db:seed --class=ProductSeeder
+
+# 7. Install frontend dependencies
+npm install
+
+# 8. Build production assets (or run `npm run dev` for dev server)
+npm run build
+
+# 9. Start the application
+php artisan serve
+# App runs at http://127.0.0.1:8000
