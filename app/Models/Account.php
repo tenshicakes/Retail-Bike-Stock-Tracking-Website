@@ -41,7 +41,7 @@ class Account extends Authenticatable
 
         return match ($page) {
             'home', 'products' => true,
-            'accounts' => $role === 'ADMINISTRATOR',
+            'accounts', 'backup' => $role === 'ADMINISTRATOR',
             'lowstock', 'nostock' => in_array($role, ['ADMINISTRATOR', 'OWNER'], true),
             'logs' => in_array($role, ['ADMINISTRATOR', 'OWNER', 'STAFF'], true),
             default => true,

@@ -28,36 +28,36 @@
 
             <ul class="nav flex-column gap-2 mb-auto">
                 <li class="nav-item">
-                    <a href="/dashboard/home" class="nav-link sidebar-link d-flex align-items-center">
+                    <a href="/dashboard/home" class="nav-link sidebar-link d-flex align-items-center {{ request()->is('dashboard/home') ? 'active' : '' }}">
                         <i class="bi bi-house-door fs-5"></i>
                         <span class="ms-3 sidebar-text">Home</span>
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="/dashboard/products" class="nav-link sidebar-link d-flex align-items-center">
+                    <a href="/dashboard/products" class="nav-link sidebar-link d-flex align-items-center {{ request()->is('dashboard/products') ? 'active' : '' }}">
                         <i class="bi bi-bicycle fs-5"></i>
                         <span class="ms-3 sidebar-text">Products</span>
                     </a>
                 </li>
                 @if(Auth::check() && Auth::user()->canAccessPage('lowstock'))
                     <li class="nav-item">
-                        <a href="/dashboard/lowstock" class="nav-link sidebar-link d-flex align-items-center">
-                            <i class="bi bi-exclamation-triangle fs-5 "></i>
+                        <a href="/dashboard/lowstock" class="nav-link sidebar-link d-flex align-items-center {{ request()->is('dashboard/lowstock') ? 'active' : '' }}">
+                            <i class="bi bi-exclamation-triangle fs-5"></i>
                             <span class="ms-3 sidebar-text">Low Stock</span>
                         </a>
                     </li>
                 @endif
                 @if(Auth::check() && Auth::user()->canAccessPage('nostock'))
                     <li class="nav-item">
-                        <a href="/dashboard/nostock" class="nav-link sidebar-link d-flex align-items-center">
-                            <i class="bi bi-x-circle fs-5 "></i>
+                        <a href="/dashboard/nostock" class="nav-link sidebar-link d-flex align-items-center {{ request()->is('dashboard/nostock') ? 'active' : '' }}">
+                            <i class="bi bi-x-circle fs-5"></i>
                             <span class="ms-3 sidebar-text">No Stock</span>
                         </a>
                     </li>
                 @endif
                 @if(Auth::check() && Auth::user()->canAccessPage('logs'))
                     <li class="nav-item">
-                        <a href="/dashboard/logs" class="nav-link sidebar-link d-flex align-items-center">
+                        <a href="/dashboard/logs" class="nav-link sidebar-link d-flex align-items-center {{ request()->is('dashboard/logs') ? 'active' : '' }}">
                             <i class="bi bi-journal-text fs-5"></i>
                             <span class="ms-3 sidebar-text">Logs</span>
                         </a>
@@ -65,12 +65,26 @@
                 @endif
                 @if(Auth::check() && Auth::user()->canAccessPage('accounts'))
                     <li class="nav-item">
-                        <a href="/dashboard/accounts" class="nav-link sidebar-link d-flex align-items-center">
+                        <a href="/dashboard/accounts" class="nav-link sidebar-link d-flex align-items-center {{ request()->is('dashboard/accounts') ? 'active' : '' }}">
                             <i class="bi bi-people fs-5"></i>
                             <span class="ms-3 sidebar-text">Accounts</span>
                         </a>
                     </li>
                 @endif
+                @if(Auth::check() && Auth::user()->canAccessPage('backup'))
+                    <li class="nav-item">
+                        <a href="/dashboard/backup" class="nav-link sidebar-link d-flex align-items-center {{ request()->is('dashboard/backup') ? 'active' : '' }}">
+                            <i class="bi bi-database-down fs-5"></i>
+                            <span class="ms-3 sidebar-text">System Backup</span>
+                        </a>
+                    </li>
+                @endif
+                <li class="nav-item">
+                    <a href="/dashboard/profile" class="nav-link sidebar-link d-flex align-items-center {{ request()->is('dashboard/profile') ? 'active' : '' }}">
+                        <i class="bi bi-person-gear fs-5"></i>
+                        <span class="ms-3 sidebar-text">Profile & Settings</span>
+                    </a>
+                </li>
             </ul>
 
             <hr class="text-white-50">
@@ -83,10 +97,58 @@
 
         <main class="grow d-flex flex-column w-100 overflow-auto">
             
-            <header class="bg-white shadow-sm p-3 d-flex align-items-center">
+            <!-- TOP NAVBAR WITH USER & ROLE INDICATOR -->
+            <header class="bg-white shadow-sm px-4 py-2 d-flex align-items-center justify-content-between">
                 <button class="btn btn-light border-0" id="sidebarToggle">
                     <i class="bi bi-list fs-4"></i>
                 </button>
+
+                @if(Auth::check())
+                    @php
+                        $currentUser = Auth::user();
+                        $roleUpper = strtoupper(trim((string) $currentUser->Role));
+                        $roleBadgeClass = match($roleUpper) {
+                            'ADMINISTRATOR' => 'bg-danger text-white',
+                            'OWNER' => 'bg-dark text-white',
+                            'MECHANIC' => 'bg-info text-dark',
+                            default => 'bg-primary text-white',
+                        };
+                    @endphp
+
+                    <div class="dropdown">
+                        <button class="btn btn-light border rounded-pill px-3 py-1 d-flex align-items-center gap-2 shadow-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <span class="rounded-circle d-inline-flex align-items-center justify-content-center text-white fw-bold" style="width: 32px; height: 32px; background-color: rgb(12, 17, 44); font-size: 0.85rem;">
+                                {{ strtoupper(substr($currentUser->Username, 0, 1)) }}
+                            </span>
+                            <div class="text-start d-none d-sm-block lh-sm">
+                                <div class="fw-bold text-dark small" id="navbarUserEmail">{{ $currentUser->Username }}</div>
+                                <span class="badge {{ $roleBadgeClass }}" style="font-size: 0.68rem;">
+                                    {{ $currentUser->Role }}
+                                </span>
+                            </div>
+                        </button>
+
+                        <ul class="dropdown-menu dropdown-menu-end shadow border-0 rounded-3 mt-2">
+                            <li class="px-3 py-2 d-sm-none border-bottom">
+                                <div class="fw-bold small text-dark" id="navbarUserEmailMobile">{{ $currentUser->Username }}</div>
+                                <span class="badge {{ $roleBadgeClass }} mt-1">{{ $currentUser->Role }}</span>
+                            </li>
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center gap-2 py-2" href="/dashboard/profile">
+                                    <i class="bi bi-person-gear text-primary"></i>
+                                    <span>Profile & Settings</span>
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center gap-2 py-2 text-danger fw-semibold" href="/logout">
+                                    <i class="bi bi-box-arrow-left"></i>
+                                    <span>Logout</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                @endif
             </header>
 
             <div class="p-4">

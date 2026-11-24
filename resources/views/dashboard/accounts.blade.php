@@ -135,17 +135,17 @@
 
                         <div class="mb-3">
                             <label class="form-label fw-bold text-muted">Username</label>
-                            <input type="text" class="form-control" id="accountUsername" name="Username" placeholder="Enter username" required>
+                            <input type="email" class="form-control" id="accountUsername" name="Username" placeholder="name@example.com" required>
                         </div>
 
                         <div class="mb-3">
                             <label class="form-label fw-bold text-muted">Password</label>
-                            <input type="password" class="form-control" id="accountPassword" name="Password" placeholder="Enter password" required>
+                            <input type="password" class="form-control" id="accountPassword" name="Password" placeholder="Enter password" minlength="8" required>
                         </div>
 
                         <div class="mb-3">
                             <label class="form-label fw-bold text-muted">Confirm Password</label>
-                            <input type="password" class="form-control" id="accountPasswordConfirmation" name="Password_confirmation" placeholder="Confirm password" required>
+                            <input type="password" class="form-control" id="accountPasswordConfirmation" name="Password_confirmation" placeholder="Confirm password" minlength="8" required>
                         </div>
 
                         <div class="mb-3">

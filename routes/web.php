@@ -7,6 +7,8 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Middleware\PreventBackHistory;
 use App\Http\Controllers\LogController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\BackupController;
 
 // --- GUEST ROUTES  ---
 Route::middleware('guest')->group(function () {
@@ -21,6 +23,11 @@ Route::middleware(['auth', PreventBackHistory::class])->group(function () {
     Route::get('/dashboard/home', [DashboardController::class, 'home']);
     Route::post('/dashboard/process-stock', [DashboardController::class, 'processStock'])->middleware('role:Administrator,Owner,Staff,Mechanic');
     Route::get('/api/subcategories', [App\Http\Controllers\ProductController::class, 'getSubcategories'])->middleware('role:Administrator,Owner,Staff,Mechanic');
+
+    Route::get('/dashboard/profile', [ProfileController::class, 'index'])->name('profile.index');
+    Route::put('/dashboard/profile/info', [ProfileController::class, 'updateInfo'])->name('profile.updateInfo');
+    Route::put('/dashboard/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.updatePassword');
+    Route::post('/dashboard/profile/logout-sessions', [ProfileController::class, 'logoutOtherSessions'])->name('profile.logoutSessions');
 
     Route::get('/dashboard/products', [ProductController::class, 'index'])->middleware('role:Administrator,Owner,Staff,Mechanic');
     Route::post('/dashboard/products', [ProductController::class, 'store'])->middleware('role:Administrator,Owner');
@@ -44,6 +51,13 @@ Route::middleware(['auth', PreventBackHistory::class])->group(function () {
         Route::post('/dashboard/accounts', [AccountController::class, 'store']);
         Route::put('/dashboard/accounts/{account}', [AccountController::class, 'update']);
         Route::delete('/dashboard/accounts', [AccountController::class, 'destroy']);
+
+        Route::get('/dashboard/backup', [BackupController::class, 'index'])->name('backup.index');
+        Route::post('/dashboard/backup/create', [BackupController::class, 'create'])->name('backup.create');
+        Route::get('/dashboard/backup/download/{filename}', [BackupController::class, 'download'])->name('backup.download');
+        Route::delete('/dashboard/backup/{filename}', [BackupController::class, 'destroy'])->name('backup.destroy');
+        Route::post('/dashboard/backup/restore', [BackupController::class, 'restore'])->name('backup.restore');
+
     });
 
     Route::get('/logout', [AuthController::class, 'logout']);

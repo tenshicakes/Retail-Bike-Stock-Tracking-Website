@@ -24,14 +24,21 @@ class AccountController extends Controller
 
     public function store(Request $request)
     {
+        $request->merge([
+            'Username' => trim((string) $request->Username),
+        ]);
+
         $validated = $request->validate([
-            'Username' => ['required', 'string', 'max:120', 'unique:accounts,Username'],
-            'Password' => ['required', 'string', 'min:6', 'confirmed'],
+            'Username' => ['required', 'string', 'email', 'max:120', 'unique:accounts,Username'],
+            'Password' => ['required', 'string', 'min:8', 'confirmed'],
             'Role' => ['required', 'in:Administrator,Owner,Staff,Mechanic'],
+        ], [
+            'Username.email' => 'Please enter a valid email address (e.g., name@example.com).',
+            'Password.min' => 'Password must be at least 8 characters long.',
         ]);
 
         Account::create([
-            'Username' => trim($validated['Username']),
+            'Username' => $validated['Username'],
             'Password' => Hash::make($validated['Password']),
             'Role' => $validated['Role'],
         ]);
@@ -48,13 +55,20 @@ class AccountController extends Controller
 
     public function update(Request $request, Account $account)
     {
-        $validated = $request->validate([
-            'Username' => ['required', 'string', 'max:120', 'unique:accounts,Username,' . $account->UserID . ',UserID'],
-            'Password' => ['nullable', 'string', 'min:6', 'confirmed'],
-            'Role' => ['required', 'in:Administrator,Owner,Staff,Mechanic'],
+        $request->merge([
+            'Username' => trim((string) $request->Username),
         ]);
 
-        $account->Username = trim($validated['Username']);
+        $validated = $request->validate([
+            'Username' => ['required', 'string', 'email', 'max:120', 'unique:accounts,Username,' . $account->UserID . ',UserID'],
+            'Password' => ['nullable', 'string', 'min:8', 'confirmed'],
+            'Role' => ['required', 'in:Administrator,Owner,Staff,Mechanic'],
+        ], [
+            'Username.email' => 'Please enter a valid email address (e.g., name@example.com).',
+            'Password.min' => 'Password must be at least 8 characters long.',
+        ]);
+
+        $account->Username = $validated['Username'];
         $account->Role = $validated['Role'];
 
         if (! empty($validated['Password'])) {
