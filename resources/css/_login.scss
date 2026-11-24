@@ -11,7 +11,6 @@
     min-height: 50vh;
 }
 
-
 @media (min-width: 992px) {
     .login-right-side {
         min-height: 100vh;
@@ -20,9 +19,7 @@
 
 .glass-login-box {
     width: 100%;
-    max-width: 420px; 
-
-  
+    max-width: 450px;
     background: rgba(255, 255, 255, 0.08);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
@@ -38,4 +35,37 @@
 .button-container .btn {
     background: rgb(36, 49, 121);
     border-color: rgb(36, 49, 121);
+}
+
+.button-container .btn:hover:not(:disabled) {
+    background: rgb(48, 65, 156);
+    border-color: rgb(48, 65, 156);
+}
+
+.auth-switcher {
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    padding: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.auth-switcher .auth-tab-btn {
+    border: none;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.75);
+    border-radius: 9px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.auth-switcher .auth-tab-btn.active {
+    background: rgb(36, 49, 121);
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+
+.captcha-box {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
 }

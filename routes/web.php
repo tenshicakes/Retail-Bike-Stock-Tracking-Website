@@ -12,6 +12,8 @@ use App\Http\Controllers\ProductController;
 Route::middleware('guest')->group(function () {
     Route::get('/', [AuthController::class, 'showLogin'])->name('login');
     Route::post('/login', [AuthController::class, 'authenticate']);
+    Route::post('/register', [AuthController::class, 'register'])->name('register');
+    Route::get('/captcha/refresh', [AuthController::class, 'refreshCaptcha'])->name('captcha.refresh');
 });
 
 // --- PROTECTED ROUTES  ---
