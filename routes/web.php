@@ -20,6 +20,7 @@ Route::middleware('guest')->group(function () {
 
 // --- PROTECTED ROUTES  ---
 Route::middleware(['auth', PreventBackHistory::class])->group(function () {
+    Route::get('/api/dashboard/charts', [DashboardController::class, 'chartData'])->name('dashboard.charts');
     Route::get('/dashboard/home', [DashboardController::class, 'home']);
     Route::post('/dashboard/process-stock', [DashboardController::class, 'processStock'])->middleware('role:Administrator,Owner,Staff,Mechanic');
     Route::get('/api/subcategories', [App\Http\Controllers\ProductController::class, 'getSubcategories'])->middleware('role:Administrator,Owner,Staff,Mechanic');
@@ -57,6 +58,7 @@ Route::middleware(['auth', PreventBackHistory::class])->group(function () {
         Route::get('/dashboard/backup/download/{filename}', [BackupController::class, 'download'])->name('backup.download');
         Route::delete('/dashboard/backup/{filename}', [BackupController::class, 'destroy'])->name('backup.destroy');
         Route::post('/dashboard/backup/restore', [BackupController::class, 'restore'])->name('backup.restore');
+        
 
     });
 
