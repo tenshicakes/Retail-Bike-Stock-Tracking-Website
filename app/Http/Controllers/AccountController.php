@@ -68,6 +68,26 @@ class AccountController extends Controller
             'Password.min' => 'Password must be at least 8 characters long.',
         ]);
 
+        // Prevent the currently logged-in Administrator from changing/downgrading their own role
+        if ((int) $account->UserID === (int) Auth::id() && $validated['Role'] !== $account->Role) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'You cannot change or downgrade your own Administrator role.',
+            ], 422);
+        }
+
+        // Prevent downgrading the last remaining Administrator in the system
+        if (
+            strcasecmp((string) $account->Role, 'Administrator') === 0 &&
+            strcasecmp($validated['Role'], 'Administrator') !== 0 &&
+            Account::where('Role', 'Administrator')->count() <= 1
+        ) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Cannot downgrade the last remaining Administrator account.',
+            ], 422);
+        }
+
         $account->Username = $validated['Username'];
         $account->Role = $validated['Role'];
 

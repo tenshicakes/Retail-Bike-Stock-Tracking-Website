@@ -24,5 +24,42 @@ class AccountSeeder extends Seeder
             ]
 
         ]);
+
+        DB::table('accounts')->insert([
+            [
+                'Username' => 'owner@gmail.com',
+                'Password' => Hash::make('owner123'), 
+                'Role' => 'Owner',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]
+
+        ]);
+
+        DB::table('accounts')->insert([
+            [
+                'Username' => 'staff@gmail.com',
+                'Password' => Hash::make('staff123'), 
+                'Role' => 'Staff',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]
+
+        ]);
+
+
+        DB::table('accounts')->insert([
+            [
+                'Username' => 'mechanic@gmail.com',
+                'Password' => Hash::make('mechanic123'), 
+                'Role' => 'Mechanic',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]
+
+        ]);
+
+
+        
     }
 }

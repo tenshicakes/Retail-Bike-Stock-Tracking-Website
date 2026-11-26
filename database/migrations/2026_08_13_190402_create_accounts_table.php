@@ -9,14 +9,14 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-    public function up(): void
+public function up(): void
     {
         Schema::create('accounts', function (Blueprint $table) {
             $table->id('UserID');
-        $table->string('Username');
-        $table->string('Password');
-        $table->string('Role');
-        $table->timestamps(); 
+            $table->string('Username')->unique();
+            $table->string('Password');
+            $table->string('Role');
+            $table->timestamps();
         });
     }
 

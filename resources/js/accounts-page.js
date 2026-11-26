@@ -1,205 +1,272 @@
- $(document).ready(function () {
-            let selectedItems = {};
-            let currentMode = null;
+$(document).ready(function () {
+    const wrapper = $('#accountsPageWrapper');
+    const currentUserId = String(wrapper.data('current-user-id') || '');
+    const csrfToken = wrapper.data('csrf') || $('meta[name="csrf-token"]').attr('content');
 
-            function showAlert(title, message, type = 'success') {
-                let alertBox = $('#customAlert');
-                alertBox.removeClass('alert-success alert-danger d-none').addClass(type === 'success' ? 'alert-success' : 'alert-danger');
-                $('#alertTitle').text(title);
-                $('#alertMessage').text(message);
-                $('#alertIcon').attr('class', type === 'success' ? 'bi bi-check-circle-fill fs-3 me-3' : 'bi bi-exclamation-triangle-fill fs-3 me-3');
-                alertBox.addClass('show');
-                setTimeout(() => alertBox.addClass('d-none'), 4000);
-            }
+    let selectedItems = {};
+    let currentMode = null;
 
-            function updateSelectionCount() {
-                $('#selectedCount').text(Object.keys(selectedItems).length);
-            }
+    function showAlert(title, message, type = 'success') {
+        let alertBox = $('#customAlert');
+        alertBox
+            .removeClass('alert-success alert-danger d-none')
+            .addClass(type === 'success' ? 'alert-success' : 'alert-danger');
+        $('#alertTitle').text(title);
+        $('#alertMessage').text(message);
+        $('#alertIcon').attr(
+            'class',
+            type === 'success'
+                ? 'bi bi-check-circle-fill fs-3 me-3'
+                : 'bi bi-exclamation-triangle-fill fs-3 me-3'
+        );
+        alertBox.addClass('show');
+        setTimeout(() => alertBox.addClass('d-none'), 4000);
+    }
 
-            function activateSelectionMode() {
-                $('.selection-col').removeClass('d-none');
-                $('#selectionFooter').removeClass('d-none');
-                $('#modeTitle').text(`Mode Active: ${currentMode}`).addClass('text-info');
-                $('#currentModeLabel').text(`${currentMode} Mode`);
-                updateSelectionCount();
-            }
+    function updateSelectionCount() {
+        const count = Object.keys(selectedItems).length;
+        $('#selectedCount').text(count);
+        $('#selectionUnitLabel').text(count === 1 ? 'account' : 'accounts');
+    }
 
-            function deactivateSelectionMode() {
-                currentMode = null;
-                selectedItems = {};
-                $('.account-checkbox').prop('checked', false);
-                $('#selectAllAccounts').prop('checked', false);
-                $('.selection-col').addClass('d-none');
-                $('#selectionFooter').addClass('d-none');
-                $('#modeTitle').text('Accounts Management').removeClass('text-info');
-                updateSelectionCount();
-            }
+    function resetCheckboxes() {
+        selectedItems = {};
+        $('.account-checkbox').prop('checked', false).prop('disabled', false);
+        $('#selectAllAccounts').prop('checked', false);
+        updateSelectionCount();
+    }
 
-            let searchTimer;
+    function activateSelectionMode(mode) {
+        currentMode = mode;
+        resetCheckboxes();
 
-            function applySearchQuery() {
-                const value = $('#txtSearch').val().trim();
-                const params = new URLSearchParams(window.location.search);
+        $('.selection-col').removeClass('d-none');
+        $('#selectionFooter').removeClass('d-none');
+        $('#modeTitle').text(`Mode Active: ${currentMode}`).addClass('text-info');
 
-                if (value) {
-                    params.set('search', value);
-                } else {
-                    params.delete('search');
-                }
+        if (currentMode === 'Edit') {
+            // Single-select only: hide Select All checkbox in Edit mode
+            $('#selectAllAccounts').addClass('d-none');
+            $('#currentModeLabel').text('Edit Mode (Select 1 account)');
+        } else if (currentMode === 'Delete') {
+            // Multi-select allowed in Delete mode, but disable self-checkbox
+            $('#selectAllAccounts').removeClass('d-none');
+            $('.account-checkbox[data-is-self="1"]').prop('disabled', true);
+            $('#currentModeLabel').text('Delete Mode');
+        }
+    }
 
-                const queryString = params.toString();
-                window.location.href = `${window.location.pathname}${queryString ? '?' + queryString : ''}`;
-            }
+    function deactivateSelectionMode() {
+        currentMode = null;
+        resetCheckboxes();
+        $('#selectAllAccounts').removeClass('d-none');
+        $('.selection-col').addClass('d-none');
+        $('#selectionFooter').addClass('d-none');
+        $('#modeTitle').text('Accounts Management').removeClass('text-info');
+    }
 
-            $('#txtSearch').on('keyup input', function () {
-                clearTimeout(searchTimer);
-                searchTimer = setTimeout(() => applySearchQuery(), 300);
-            });
+    let searchTimer;
 
-            $('#btnResetSearch').click(function () {
-                $('#txtSearch').val('');
-                applySearchQuery();
-            });
+    function applySearchQuery() {
+        const value = $('#txtSearch').val().trim();
+        const params = new URLSearchParams(window.location.search);
 
-            $('.btn-activate-mode').click(function () {
-                currentMode = $(this).data('mode');
-                activateSelectionMode();
-            });
+        if (value) {
+            params.set('search', value);
+        } else {
+            params.delete('search');
+        }
 
-            $('#btnCancelSelection').click(deactivateSelectionMode);
+        const queryString = params.toString();
+        window.location.href = `${window.location.pathname}${queryString ? '?' + queryString : ''}`;
+    }
 
-            $('#selectAllAccounts').change(function () {
-                let checked = this.checked;
-                $('.account-checkbox').each(function () {
-                    $(this).prop('checked', checked).trigger('change');
-                });
-            });
+    $('#txtSearch').on('keyup input', function () {
+        clearTimeout(searchTimer);
+        searchTimer = setTimeout(() => applySearchQuery(), 300);
+    });
 
-            $(document).on('change', '.account-checkbox', function () {
-                let id = $(this).val();
-                if (this.checked) {
-                    selectedItems[id] = { id: id };
-                } else {
-                    delete selectedItems[id];
-                }
-                updateSelectionCount();
-            });
+    $('#btnResetSearch').click(function () {
+        $('#txtSearch').val('');
+        applySearchQuery();
+    });
 
-            $('#btnEditAccount').click(function () {
-                currentMode = 'Edit';
-                activateSelectionMode();
-            });
+    // Unified mode activation (resets checkboxes cleanly when switching modes)
+    $('.btn-activate-mode').click(function () {
+        const mode = $(this).data('mode');
+        activateSelectionMode(mode);
+    });
 
-            $('#btnAddAccount').click(function () {
-                $('#accountModalTitle').text('Add Account');
-                $('#frmAccount').attr('data-mode', 'create');
-                $('#frmAccount')[0].reset();
-                $('#accountId').val('');
-                $('#btnSubmitAccount').html('<i class="bi bi-check-circle-fill me-1"></i> Save Account');
-                new bootstrap.Modal(document.getElementById('accountModal')).show();
-            });
+    $('#btnCancelSelection').click(deactivateSelectionMode);
 
-            $('#frmAccount').submit(function (e) {
-                e.preventDefault();
+    $('#selectAllAccounts').change(function () {
+        if (currentMode !== 'Delete') {
+            this.checked = false;
+            return;
+        }
 
-                let mode = $(this).attr('data-mode') || 'create';
-                let payload = {
-                    _token: '{{ csrf_token() }}',
-                    Username: $('#accountUsername').val(),
-                    Password: $('#accountPassword').val(),
-                    Password_confirmation: $('#accountPasswordConfirmation').val(),
-                    Role: $('#accountRole').val()
-                };
-
-                let url = '/dashboard/accounts';
-                let ajaxConfig = {
-                    url: url,
-                    method: 'POST',
-                    data: payload,
-                    success: function (res) {
-                        bootstrap.Modal.getInstance(document.getElementById('accountModal')).hide();
-                        showAlert('Success', res.message || 'Account saved successfully.', 'success');
-                        setTimeout(() => window.location.reload(), 700);
-                    },
-                    error: function (xhr) {
-                        let message = xhr.responseJSON?.message || 'Please check the account details and try again.';
-                        let errors = xhr.responseJSON?.errors;
-                        if (errors) {
-                            message = Object.values(errors).flat().join(' ');
-                        }
-                        showAlert('Failed', message, 'error');
-                    }
-                };
-
-                if (mode === 'edit') {
-                    let id = $('#accountId').val();
-                    ajaxConfig.url = '/dashboard/accounts/' + id;
-                    ajaxConfig.data = {
-                        ...payload,
-                        _method: 'PUT'
-                    };
-                }
-
-                $.ajax(ajaxConfig);
-            });
-
-            $('#btnConfirmSelection').click(function () {
-                if (Object.keys(selectedItems).length === 0) {
-                    showAlert('Selection Required', 'Please select at least one account.', 'error');
-                    return;
-                }
-
-                if (currentMode === 'Edit') {
-                    if (Object.keys(selectedItems).length > 1) {
-                        showAlert('Only One Account', 'Please select only one account to edit.', 'error');
-                        return;
-                    }
-
-                    let id = Object.keys(selectedItems)[0];
-                    let row = $(`tr[data-id='${id}']`);
-
-                    $('#accountModalTitle').text('Edit Account');
-                    $('#frmAccount').attr('data-mode', 'edit');
-                    $('#accountId').val(id);
-                    $('#accountUsername').val(row.data('username'));
-                    $('#accountPassword').val('');
-                    $('#accountPasswordConfirmation').val('');
-                    $('#accountRole').val(row.data('role'));
-                    $('#btnSubmitAccount').html('<i class="bi bi-check-circle-fill me-1"></i> Update Account');
-
-                    bootstrap.Modal.getInstance(document.getElementById('accountModal'))?.hide();
-                    new bootstrap.Modal(document.getElementById('accountModal')).show();
-                    return;
-                }
-
-                if (currentMode === 'Delete') {
-                    $('#deleteConfirmCount').text(Object.keys(selectedItems).length);
-                    new bootstrap.Modal(document.getElementById('deleteConfirmModal')).show();
-                    return;
-                }
-
-                showAlert('Invalid Mode', 'This mode does not support confirmation yet.', 'error');
-            });
-
-            $('#btnConfirmDelete').click(function () {
-                $.ajax({
-                    url: '/dashboard/accounts',
-                    method: 'POST',
-                    data: {
-                        _token: '{{ csrf_token() }}',
-                        _method: 'DELETE',
-                        ids: Object.keys(selectedItems)
-                    },
-                    success: function (res) {
-                        bootstrap.Modal.getInstance(document.getElementById('deleteConfirmModal'))?.hide();
-                        showAlert('Deleted', res.message || 'Account deleted successfully.', 'success');
-                        deactivateSelectionMode();
-                        setTimeout(() => window.location.reload(), 700);
-                    },
-                    error: function (xhr) {
-                        let message = xhr.responseJSON?.message || 'Unable to delete the selected account(s).';
-                        showAlert('Delete Failed', message, 'error');
-                    }
-                });
-            });
+        let checked = this.checked;
+        $('.account-checkbox:not(:disabled)').each(function () {
+            $(this).prop('checked', checked).trigger('change');
         });
+    });
+
+    $(document).on('change', '.account-checkbox', function () {
+        let id = String($(this).val());
+
+        if (currentMode === 'Edit') {
+            if (this.checked) {
+                // Enforce single selection: uncheck all other boxes immediately
+                $('.account-checkbox').not(this).prop('checked', false);
+                selectedItems = { [id]: { id: id } };
+            } else {
+                selectedItems = {};
+            }
+            updateSelectionCount();
+            return;
+        }
+
+        if (this.checked) {
+            selectedItems[id] = { id: id };
+        } else {
+            delete selectedItems[id];
+        }
+        updateSelectionCount();
+    });
+
+    $('#btnAddAccount').click(function () {
+        $('#accountModalTitle').text('Add Account');
+        $('#frmAccount').attr('data-mode', 'create');
+        $('#frmAccount')[0].reset();
+        $('#accountId').val('');
+        $('#accountPassword, #accountPasswordConfirmation').prop('required', true);
+        $('#accountRole').prop('disabled', false);
+        $('#selfRoleNotice').addClass('d-none');
+        $('#btnSubmitAccount').html('<i class="bi bi-check-circle-fill me-1"></i> Save Account');
+        new bootstrap.Modal(document.getElementById('accountModal')).show();
+    });
+
+    $('#frmAccount').submit(function (e) {
+        e.preventDefault();
+
+        let mode = $(this).attr('data-mode') || 'create';
+        let id = String($('#accountId').val() || '');
+        let selectedRole = $('#accountRole').val();
+
+        // Guard against self-role downgrade on the client side as well
+        if (mode === 'edit' && id === currentUserId) {
+            selectedRole = 'Administrator';
+        }
+
+        let payload = {
+            _token: csrfToken,
+            Username: $('#accountUsername').val(),
+            Password: $('#accountPassword').val(),
+            Password_confirmation: $('#accountPasswordConfirmation').val(),
+            Role: selectedRole
+        };
+
+        let url = '/dashboard/accounts';
+        let ajaxConfig = {
+            url: url,
+            method: 'POST',
+            data: payload,
+            success: function (res) {
+                bootstrap.Modal.getInstance(document.getElementById('accountModal')).hide();
+                showAlert('Success', res.message || 'Account saved successfully.', 'success');
+                setTimeout(() => window.location.reload(), 700);
+            },
+            error: function (xhr) {
+                let message = xhr.responseJSON?.message || 'Please check the account details and try again.';
+                let errors = xhr.responseJSON?.errors;
+                if (errors) {
+                    message = Object.values(errors).flat().join(' ');
+                }
+                showAlert('Failed', message, 'error');
+            }
+        };
+
+        if (mode === 'edit') {
+            ajaxConfig.url = '/dashboard/accounts/' + id;
+            ajaxConfig.data = {
+                ...payload,
+                _method: 'PUT'
+            };
+        }
+
+        $.ajax(ajaxConfig);
+    });
+
+    $('#btnConfirmSelection').click(function () {
+        const selectedIds = Object.keys(selectedItems);
+
+        if (selectedIds.length === 0) {
+            showAlert('Selection Required', 'Please select at least one account.', 'error');
+            return;
+        }
+
+        if (currentMode === 'Edit') {
+            if (selectedIds.length > 1) {
+                showAlert('Only One Account', 'Please select only one account to edit.', 'error');
+                return;
+            }
+
+            let id = selectedIds[0];
+            let row = $(`tr[data-id='${id}']`);
+            let isEditingSelf = String(id) === currentUserId;
+
+            $('#accountModalTitle').text(isEditingSelf ? 'Edit Your Account' : 'Edit Account');
+            $('#frmAccount').attr('data-mode', 'edit');
+            $('#accountId').val(id);
+            $('#accountUsername').val(row.data('username'));
+            $('#accountPassword').val('').prop('required', false);
+            $('#accountPasswordConfirmation').val('').prop('required', false);
+            $('#accountRole').val(row.data('role'));
+
+            // Lock Role dropdown when editing your own Administrator account
+            if (isEditingSelf) {
+                $('#accountRole').prop('disabled', true);
+                $('#selfRoleNotice').removeClass('d-none');
+            } else {
+                $('#accountRole').prop('disabled', false);
+                $('#selfRoleNotice').addClass('d-none');
+            }
+
+            $('#btnSubmitAccount').html('<i class="bi bi-check-circle-fill me-1"></i> Update Account');
+
+            bootstrap.Modal.getInstance(document.getElementById('accountModal'))?.hide();
+            new bootstrap.Modal(document.getElementById('accountModal')).show();
+            return;
+        }
+
+        if (currentMode === 'Delete') {
+            $('#deleteConfirmCount').text(selectedIds.length);
+            new bootstrap.Modal(document.getElementById('deleteConfirmModal')).show();
+            return;
+        }
+
+        showAlert('Invalid Mode', 'This mode does not support confirmation yet.', 'error');
+    });
+
+    $('#btnConfirmDelete').click(function () {
+        $.ajax({
+            url: '/dashboard/accounts',
+            method: 'POST',
+            data: {
+                _token: csrfToken,
+                _method: 'DELETE',
+                ids: Object.keys(selectedItems)
+            },
+            success: function (res) {
+                bootstrap.Modal.getInstance(document.getElementById('deleteConfirmModal'))?.hide();
+                showAlert('Deleted', res.message || 'Account deleted successfully.', 'success');
+                deactivateSelectionMode();
+                setTimeout(() => window.location.reload(), 700);
+            },
+            error: function (xhr) {
+                let message = xhr.responseJSON?.message || 'Unable to delete the selected account(s).';
+                showAlert('Delete Failed', message, 'error');
+            }
+        });
+    });
+});

@@ -143,7 +143,7 @@
                             <div class="col-md-5">
                                 <label class="form-label fw-bold text-muted">Assigned Role</label>
                                 <input type="text" class="form-control bg-light" value="{{ $user->Role }}" disabled readonly>
-                                <div class="form-text">Roles can only be changed by an Administrator.</div>
+                                <div class="form-text">You cannot change your role.</div>
                             </div>
                         </div>
 
