@@ -1,5 +1,6 @@
 @props(['logs'])
 
+@if(!request()->ajax())
 <div class="d-flex justify-content-between align-items-center px-4 py-3 border-bottom bg-light">
     <div>
         <h6 class="m-0 fw-bold text-muted" id="selectionStatus">Standard Mode</h6>
@@ -11,63 +12,69 @@
     </div>
 </div>
 
-<div class="table-responsive">
-    <table class="table table-hover table-borderless align-middle mb-0">
-        <thead class="table-light text-muted" style="font-size: 0.85rem;">
-            <tr>
-                <th class="ps-4 selection-col d-none">SELECT</th>
-                <th class="std-ps">Log ID</th>
-                <th>Date</th>
-                <th>Action</th>
-                <th>Product Name</th>
-                <th>Quantity</th>
-                <th>Total Price</th>
-                <th class="pe-4 text-end action-col">Export</th>
-            </tr>
-        </thead>
-        <tbody>
-            @forelse($logs as $log)
-                <tr data-id="{{ $log->LogID }}" data-name="{{ $log->product->ProductName }}" data-action="{{ $log->ActionType }}" data-qty="{{ $log->Quantity }}" data-total="{{ $log->TotalPrice }}">
-                    
-                    <td class="ps-4 selection-col d-none">
-                        <input class="form-check-input log-checkbox fs-5" type="checkbox" value="{{ $log->LogID }}">
-                    </td>
-                    
-                    <td class="ps-4 fw-bold text-muted std-ps">#{{ $log->LogID }}</td>
-                    <td>{{ \Carbon\Carbon::parse($log->LogDate)->format('M d, Y h:i A') }}</td>
-                    <td class="text-dark">
-                        {{ $log->ActionType }}
-                    </td>
-                    <td class="fw-bold">{{ $log->product->ProductName }}</td>
-                    <td>{{ $log->Quantity }}</td>
-                    <td class="fw-semibold">₱{{ number_format($log->TotalPrice, 2) }}</td>
-                    
-                    <td class="pe-4 text-end action-col">
-                        <form method="POST" action="/dashboard/logs/export" class="m-0">
-                            @csrf
-                            <input type="hidden" name="log_ids[]" value="{{ $log->LogID }}">
-                            <button type="submit" class="btn btn-sm btn-outline-dark" title="Export this row">
-                                <i class="bi bi-file-pdf"></i>
-                            </button>
-                        </form>
-                    </td>
-                </tr>
-            @empty
-                <tr><td colspan="8" class="text-center py-5">No logs found.</td></tr>
-            @endforelse
-        </tbody>
-    </table>
-</div>
+<div id="logTableContainer">
+@endif
 
-<div class="px-4 py-3 border-top bg-white">
-    {{ $logs->links() }}
+    <div class="table-responsive">
+        <table class="table table-hover table-borderless align-middle mb-0">
+            <thead class="table-light text-muted" style="font-size: 0.85rem;">
+                <tr>
+                    <th class="ps-4 selection-col d-none">SELECT</th>
+                    <th class="std-ps">Log ID</th>
+                    <th>Date</th>
+                    <th>Action</th>
+                    <th>Product Name</th>
+                    <th>Quantity</th>
+                    <th>Total Price</th>
+                    <th class="pe-4 text-end action-col">Export</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($logs as $log)
+                    <tr data-id="{{ $log->LogID }}" data-name="{{ $log->product->ProductName }}" data-action="{{ $log->ActionType }}" data-qty="{{ $log->Quantity }}" data-total="{{ $log->TotalPrice }}">
+                        
+                        <td class="ps-4 selection-col d-none">
+                            <input class="form-check-input log-checkbox fs-5" type="checkbox" value="{{ $log->LogID }}">
+                        </td>
+                        
+                        <td class="ps-4 fw-bold text-muted std-ps">#{{ $log->LogID }}</td>
+                        <td>{{ \Carbon\Carbon::parse($log->LogDate)->format('M d, Y h:i A') }}</td>
+                        <td class="text-dark">
+                            {{ $log->ActionType }}
+                        </td>
+                        <td class="fw-bold">{{ $log->product->ProductName }}</td>
+                        <td>{{ $log->Quantity }}</td>
+                        <td class="fw-semibold">₱{{ number_format($log->TotalPrice, 2) }}</td>
+                        
+                        <td class="pe-4 text-end action-col">
+                            <form method="POST" action="/dashboard/logs/export" class="m-0">
+                                @csrf
+                                <input type="hidden" name="log_ids[]" value="{{ $log->LogID }}">
+                                <button type="submit" class="btn btn-sm btn-outline-dark" title="Export this row">
+                                    <i class="bi bi-file-pdf"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                @empty
+                    <tr><td colspan="8" class="text-center py-5">No logs found.</td></tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
+
+    <div class="px-4 py-3 border-top bg-white log-pagination-container">
+        {{ $logs->links() }}
+    </div>
+
+@if(!request()->ajax())
 </div>
 
 <div class="bg-dark text-white p-3 d-flex justify-content-between align-items-center d-none" id="selectionFooter" style="position: sticky; bottom: 0; z-index: 1000;">
     <div><span class="fw-bold fs-5" id="selectedCountDisplay">0</span> logs selected for PDF Export</div>
     <div class="d-flex gap-2">
         <button class="btn btn-light fw-bold" id="btnCancelSelection">Cancel</button>
-        <button class="btn btn-info fw-bold text-white" id="btnConfirmSelection">Review & Generate</button>
+        <button class="btn btn-info fw-bold text-white" id="btnConfirmSelection">Review &amp; Generate</button>
     </div>
 </div>
 
@@ -94,10 +101,11 @@
                                 </tr>
                             </thead>
                             <tbody id="exportModalBody">
-                                </tbody>
+                            </tbody>
                         </table>
                     </div>
-                    <div id="exportHiddenInputs"></div> </div>
+                    <div id="exportHiddenInputs"></div>
+                </div>
                 <div class="modal-header bg-light justify-content-end gap-2">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                     <button type="submit" class="btn btn-dark fw-bold" id="btnSubmitExport"><i class="bi bi-printer-fill me-1"></i> Generate PDF</button>
@@ -109,6 +117,7 @@
 
 <script type="module">
     $(document).ready(function() {
+        let isSelectionMode = false;
         let selectedLogs = JSON.parse(sessionStorage.getItem('bikeShop_exportLogs') || '{}');
 
         function restoreCheckboxes() {
@@ -122,6 +131,7 @@
         }
 
         function activateSelectionMode() {
+            isSelectionMode = true;
             $('.action-col').addClass('d-none');
             $('.selection-col').removeClass('d-none');
             $('.std-ps').removeClass('ps-4');
@@ -132,6 +142,7 @@
         }
 
         function deactivateSelectionMode() {
+            isSelectionMode = false;
             selectedLogs = {};
             sessionStorage.removeItem('bikeShop_exportLogs');
             $('.log-checkbox').prop('checked', false);
@@ -142,6 +153,13 @@
             $('#selectionStatus').text('Standard Mode').removeClass('text-info');
         }
 
+        // Exposed hook so AJAX filtering/pagination preserves Selection Mode state
+        window.syncLogSelectionState = function () {
+            if (isSelectionMode || Object.keys(selectedLogs).length > 0) {
+                activateSelectionMode();
+            }
+        };
+
         if (Object.keys(selectedLogs).length > 0) {
             activateSelectionMode();
         }
@@ -149,7 +167,7 @@
         $('#btnBatchExport').click(activateSelectionMode);
         $('#btnCancelSelection').click(deactivateSelectionMode);
 
-        $('.log-checkbox').change(function() {
+        $(document).on('change', '.log-checkbox', function() {
             let tr = $(this).closest('tr');
             let id = $(this).val();
 
@@ -221,3 +239,4 @@
         });
     });
 </script>
+@endif

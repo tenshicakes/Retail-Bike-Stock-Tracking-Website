@@ -36,6 +36,26 @@ $(document).ready(function () {
         updateSelectionCount();
     }
 
+    function reapplyModeToTable() {
+        if (!currentMode) return;
+
+        $('.selection-col').removeClass('d-none');
+
+        if (currentMode === 'Edit') {
+            $('#selectAllAccounts').addClass('d-none');
+        } else if (currentMode === 'Delete') {
+            $('#selectAllAccounts').removeClass('d-none');
+            $('.account-checkbox[data-is-self="1"]').prop('disabled', true);
+        }
+
+        $('.account-checkbox').each(function () {
+            const id = String($(this).val());
+            if (selectedItems[id] && !$(this).prop('disabled')) {
+                $(this).prop('checked', true);
+            }
+        });
+    }
+
     function activateSelectionMode(mode) {
         currentMode = mode;
         resetCheckboxes();
@@ -45,11 +65,9 @@ $(document).ready(function () {
         $('#modeTitle').text(`Mode Active: ${currentMode}`).addClass('text-info');
 
         if (currentMode === 'Edit') {
-            // Single-select only: hide Select All checkbox in Edit mode
             $('#selectAllAccounts').addClass('d-none');
             $('#currentModeLabel').text('Edit Mode (Select 1 account)');
         } else if (currentMode === 'Delete') {
-            // Multi-select allowed in Delete mode, but disable self-checkbox
             $('#selectAllAccounts').removeClass('d-none');
             $('.account-checkbox[data-is-self="1"]').prop('disabled', true);
             $('#currentModeLabel').text('Delete Mode');
@@ -65,33 +83,60 @@ $(document).ready(function () {
         $('#modeTitle').text('Accounts Management').removeClass('text-info');
     }
 
+    // --- AJAX Live Search & Pagination ---
     let searchTimer;
 
-    function applySearchQuery() {
-        const value = $('#txtSearch').val().trim();
-        const params = new URLSearchParams(window.location.search);
+    function fetchAccounts(pageUrl = '/dashboard/accounts') {
+        const searchValue = $('#txtSearch').val().trim();
+        const parsedUrl = new URL(pageUrl, window.location.origin);
+        const queryParams = new URLSearchParams();
 
-        if (value) {
-            params.set('search', value);
-        } else {
-            params.delete('search');
+        if (searchValue) {
+            queryParams.set('search', searchValue);
         }
 
-        const queryString = params.toString();
-        window.location.href = `${window.location.pathname}${queryString ? '?' + queryString : ''}`;
+        const page = parsedUrl.searchParams.get('page');
+        if (page) {
+            queryParams.set('page', page);
+        }
+
+        const queryString = queryParams.toString();
+        const requestUrl = `${parsedUrl.pathname}${queryString ? '?' + queryString : ''}`;
+
+        $.ajax({
+            url: requestUrl,
+            method: 'GET',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            success: function (html) {
+                $('#accountsTableContainer').html(html);
+                window.history.replaceState({}, '', requestUrl);
+                reapplyModeToTable();
+            },
+            error: function () {
+                showAlert('Error', 'Failed to load accounts.', 'error');
+            }
+        });
     }
 
     $('#txtSearch').on('keyup input', function () {
         clearTimeout(searchTimer);
-        searchTimer = setTimeout(() => applySearchQuery(), 300);
+        searchTimer = setTimeout(() => fetchAccounts('/dashboard/accounts'), 250);
     });
 
     $('#btnResetSearch').click(function () {
         $('#txtSearch').val('');
-        applySearchQuery();
+        fetchAccounts('/dashboard/accounts');
     });
 
-    // Unified mode activation (resets checkboxes cleanly when switching modes)
+    $(document).on('click', '.accounts-pagination-container a', function (e) {
+        e.preventDefault();
+        const href = $(this).attr('href');
+        if (href) {
+            fetchAccounts(href);
+        }
+    });
+
+    // --- Selection Modes ---
     $('.btn-activate-mode').click(function () {
         const mode = $(this).data('mode');
         activateSelectionMode(mode);
@@ -99,7 +144,7 @@ $(document).ready(function () {
 
     $('#btnCancelSelection').click(deactivateSelectionMode);
 
-    $('#selectAllAccounts').change(function () {
+    $(document).on('change', '#selectAllAccounts', function () {
         if (currentMode !== 'Delete') {
             this.checked = false;
             return;
@@ -116,7 +161,6 @@ $(document).ready(function () {
 
         if (currentMode === 'Edit') {
             if (this.checked) {
-                // Enforce single selection: uncheck all other boxes immediately
                 $('.account-checkbox').not(this).prop('checked', false);
                 selectedItems = { [id]: { id: id } };
             } else {
@@ -153,7 +197,6 @@ $(document).ready(function () {
         let id = String($('#accountId').val() || '');
         let selectedRole = $('#accountRole').val();
 
-        // Guard against self-role downgrade on the client side as well
         if (mode === 'edit' && id === currentUserId) {
             selectedRole = 'Administrator';
         }
@@ -174,7 +217,8 @@ $(document).ready(function () {
             success: function (res) {
                 bootstrap.Modal.getInstance(document.getElementById('accountModal')).hide();
                 showAlert('Success', res.message || 'Account saved successfully.', 'success');
-                setTimeout(() => window.location.reload(), 700);
+                deactivateSelectionMode();
+                fetchAccounts(window.location.href);
             },
             error: function (xhr) {
                 let message = xhr.responseJSON?.message || 'Please check the account details and try again.';
@@ -223,7 +267,6 @@ $(document).ready(function () {
             $('#accountPasswordConfirmation').val('').prop('required', false);
             $('#accountRole').val(row.data('role'));
 
-            // Lock Role dropdown when editing your own Administrator account
             if (isEditingSelf) {
                 $('#accountRole').prop('disabled', true);
                 $('#selfRoleNotice').removeClass('d-none');
@@ -261,7 +304,7 @@ $(document).ready(function () {
                 bootstrap.Modal.getInstance(document.getElementById('deleteConfirmModal'))?.hide();
                 showAlert('Deleted', res.message || 'Account deleted successfully.', 'success');
                 deactivateSelectionMode();
-                setTimeout(() => window.location.reload(), 700);
+                fetchAccounts(window.location.href);
             },
             error: function (xhr) {
                 let message = xhr.responseJSON?.message || 'Unable to delete the selected account(s).';
@@ -269,9 +312,8 @@ $(document).ready(function () {
             }
         });
     });
-});
 
-// Per-Row Administrator 2FA Reset
+    // Per-Row Administrator 2FA Reset (Blocked on Self)
     let accountIdToReset2fa = null;
 
     $(document).on('click', '.btn-reset-2fa', function () {
@@ -300,7 +342,7 @@ $(document).ready(function () {
                 bootstrap.Modal.getInstance(document.getElementById('reset2faConfirmModal'))?.hide();
                 btn.prop('disabled', false).html('<i class="bi bi-arrow-counterclockwise me-1"></i> Reset 2FA');
                 showAlert('2FA Reset', res.message || 'Two-Factor Authentication has been reset.', 'success');
-                setTimeout(() => window.location.reload(), 700);
+                fetchAccounts(window.location.href);
             },
             error: function (xhr) {
                 bootstrap.Modal.getInstance(document.getElementById('reset2faConfirmModal'))?.hide();
@@ -310,3 +352,4 @@ $(document).ready(function () {
             }
         });
     });
+});

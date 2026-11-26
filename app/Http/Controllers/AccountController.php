@@ -19,6 +19,10 @@ class AccountController extends Controller
 
         $accounts = $query->orderBy('UserID', 'desc')->paginate(5)->withQueryString();
 
+        if ($request->ajax()) {
+            return view('components.accounts-table', compact('accounts'))->render();
+        }
+
         return view('dashboard.accounts', compact('accounts'));
     }
 

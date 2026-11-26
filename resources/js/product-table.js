@@ -1,13 +1,16 @@
 $(document).ready(function () {
     const homeSelectionKey = "bikeShop_home_selected";
     const homeActionKey = "bikeShop_home_action";
+    const csrfToken =
+        $("#homeProductWrapper").data("csrf") ||
+        $('meta[name="csrf-token"]').attr("content");
 
     let currentAction = sessionStorage.getItem(homeActionKey) || null;
     let selectedItems = JSON.parse(
         sessionStorage.getItem(homeSelectionKey) || "{}",
     );
 
-    // Pagiantion settings
+    // Pagination settings
     let modalItems = [];
     let modalCurrentPage = 1;
     const modalItemsPerPage = 5;
@@ -17,11 +20,38 @@ $(document).ready(function () {
         restoreCheckboxes();
     }
 
-    // --- button trigger ---
+    // --- AJAX Table Pagination ---
+    $(document).on("click", ".home-pagination-container a", function (e) {
+        e.preventDefault();
+        const url = $(this).attr("href");
+        if (!url) return;
+
+        $.ajax({
+            url: url,
+            method: "GET",
+            headers: { "X-Requested-With": "XMLHttpRequest" },
+            success: function (html) {
+                $("#homeProductTableContainer").html(html);
+
+                if (currentAction) {
+                    $(".action-col").addClass("d-none");
+                    $(".selection-col").removeClass("d-none");
+                    $(".std-ps").removeClass("ps-4");
+                    restoreCheckboxes();
+                }
+            },
+            error: function () {
+                if (window.showToast) {
+                    window.showToast("Failed to load products page.", "error");
+                }
+            },
+        });
+    });
+
+    // --- Button triggers ---
     $("#btnBatchStockIn").click(() => activateSelectionMode("Stock-In"));
     $("#btnBatchStockOut").click(() => activateSelectionMode("Stock-Out"));
     $("#btnCancelSelection").click(() => deactivateSelectionMode());
-
 
     $(document).on("click", ".inline-action", function () {
         let action = $(this).data("action");
@@ -39,8 +69,8 @@ $(document).ready(function () {
         openModal();
     });
 
-    // --- CHeckbox function (Cross-Page Memory) ---
-    $(".item-checkbox").change(function () {
+    // --- Delegated Checkbox function (Cross-Page Memory) ---
+    $(document).on("change", ".item-checkbox", function () {
         let tr = $(this).closest("tr");
         let id = tr.data("id");
 
@@ -56,21 +86,20 @@ $(document).ready(function () {
         }
 
         sessionStorage.setItem(homeSelectionKey, JSON.stringify(selectedItems));
-
         updateFooterCount();
     });
 
-    // --- Ui functions ---
+    // --- UI functions ---
     function activateSelectionMode(action) {
         currentAction = action;
         sessionStorage.setItem(homeActionKey, action);
 
         $("#selectionStatus")
             .text(`Selection Mode: ${action}`)
-            .removeClass("text-muted")
+            .removeClass("text-muted text-success text-danger")
             .addClass("text-" + (action === "Stock-In" ? "success" : "danger"));
-        $(".action-col").addClass("d-none"); // Hide inline buttons
-        $(".selection-col").removeClass("d-none"); // Show checkboxes
+        $(".action-col").addClass("d-none");
+        $(".selection-col").removeClass("d-none");
         $(".std-ps").removeClass("ps-4");
         $("#selectionFooter").removeClass("d-none");
         $("#currentActionDisplay").text(action);
@@ -107,7 +136,7 @@ $(document).ready(function () {
         $("#selectedCountDisplay").text(Object.keys(selectedItems).length);
     }
 
-    // --- form logic ---
+    // --- Form logic ---
     $("#btnConfirmSelection").click(function () {
         if (Object.keys(selectedItems).length === 0) {
             if (window.showToast) {
@@ -124,7 +153,6 @@ $(document).ready(function () {
         $("#modalTitle").text(`Process Transaction: ${currentAction}`);
         $("#logDescription").val("");
 
-   
         modalItems = Object.values(selectedItems).map((item) => ({
             ...item,
             quantity: 1,
@@ -138,7 +166,6 @@ $(document).ready(function () {
         modal.show();
     }
 
-    // dspaly paginated items 
     function sanitizeQuantity(rawValue, maxAllowed = null) {
         let parsed = parseInt(String(rawValue).replace(/[^0-9]/g, ""), 10);
         if (!Number.isInteger(parsed) || parsed < 1) parsed = 1;
@@ -158,23 +185,23 @@ $(document).ready(function () {
                 currentAction === "Stock-Out" ? Number(item.stock || 0) : null;
             let safeQty = sanitizeQuantity(item.quantity, maxQty);
             html += `
-                    <tr>
-                        <td class="fw-bold">${item.name}</td>
-                        <td class="text-success">₱${parseFloat(item.price).toFixed(2)}</td>
-                        <td style="width: 150px;">
-                            <div class="input-group input-group-sm">
-                                <button type="button" class="btn btn-outline-secondary btn-qty-minus" data-idx="${globalIndex}">-</button>
-                                <input type="number" class="form-control text-center qty-input" data-idx="${globalIndex}" value="${safeQty}" min="1" max="${maxQty ?? ""}" inputmode="numeric">
-                                <button type="button" class="btn btn-outline-secondary btn-qty-plus" data-idx="${globalIndex}">+</button>
-                            </div>
-                        </td>
-                        <td class="text-end">
-                            <button class="btn btn-sm btn-light text-danger btn-remove-item" data-idx="${globalIndex}">
-                                <i class="bi bi-trash3-fill"></i>
-                            </button>
-                        </td>
-                    </tr>
-                `;
+                <tr>
+                    <td class="fw-bold">${item.name}</td>
+                    <td class="text-success">₱${parseFloat(item.price).toFixed(2)}</td>
+                    <td style="width: 150px;">
+                        <div class="input-group input-group-sm">
+                            <button type="button" class="btn btn-outline-secondary btn-qty-minus" data-idx="${globalIndex}">-</button>
+                            <input type="number" class="form-control text-center qty-input" data-idx="${globalIndex}" value="${safeQty}" min="1" max="${maxQty ?? ""}" inputmode="numeric">
+                            <button type="button" class="btn btn-outline-secondary btn-qty-plus" data-idx="${globalIndex}">+</button>
+                        </div>
+                    </td>
+                    <td class="text-end">
+                        <button class="btn btn-sm btn-light text-danger btn-remove-item" data-idx="${globalIndex}">
+                            <i class="bi bi-trash3-fill"></i>
+                        </button>
+                    </td>
+                </tr>
+            `;
         });
 
         if (modalItems.length === 0) {
@@ -186,14 +213,12 @@ $(document).ready(function () {
 
         $("#modalTableBody").html(html);
 
-
         let totalPages = Math.ceil(modalItems.length / modalItemsPerPage) || 1;
         $("#modalPageCurrent").text(modalCurrentPage);
         $("#modalPageTotal").text(totalPages);
         $("#modalPrevBtn").prop("disabled", modalCurrentPage === 1);
         $("#modalNextBtn").prop("disabled", modalCurrentPage === totalPages);
     }
-
 
     $("#modalTableBody").on("click", ".btn-qty-minus", function () {
         let idx = $(this).data("idx");
@@ -225,20 +250,17 @@ $(document).ready(function () {
 
         modalItems.splice(idx, 1);
 
-        // Remove from current selection 
         delete selectedItems[removedId];
         updateFooterCount();
 
-        // Uncheck box in main UI if visible
         $(`.item-checkbox[value='${removedId}']`).prop("checked", false);
-        
+
         let totalPages = Math.ceil(modalItems.length / modalItemsPerPage) || 1;
         if (modalCurrentPage > totalPages) modalCurrentPage = totalPages;
 
         renderModalTable();
     });
 
-    //pagination buttons
     $("#modalPrevBtn").click(() => {
         modalCurrentPage--;
         renderModalTable();
@@ -248,7 +270,7 @@ $(document).ready(function () {
         renderModalTable();
     });
 
-    // --- ajax ---
+    // --- AJAX Submit ---
     $("#btnSubmitTransaction").click(function () {
         let btn = $(this);
         let hasInvalidQty = false;
@@ -282,7 +304,7 @@ $(document).ready(function () {
             url: "/dashboard/process-stock",
             type: "POST",
             data: {
-                _token: "{{ csrf_token() }}",
+                _token: csrfToken,
                 actionType: currentAction,
                 description: $("#logDescription").val(),
                 items: modalItems,
@@ -293,10 +315,13 @@ $(document).ready(function () {
 
                 setTimeout(() => {
                     location.reload();
-                }, 1500);
+                }, 1200);
             },
             error: function (xhr) {
-                window.showToast("Error: " + xhr.responseJSON.message, "error");
+                window.showToast(
+                    "Error: " + (xhr.responseJSON?.message || "Failed to process stock."),
+                    "error",
+                );
                 btn.prop("disabled", false).text("Submit Transaction");
             },
         });

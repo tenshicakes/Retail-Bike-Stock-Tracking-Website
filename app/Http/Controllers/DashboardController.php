@@ -12,13 +12,17 @@ use Illuminate\Support\Facades\Auth;
 
 class DashboardController extends Controller
 {
-    public function home()
+    public function home(Request $request)
     {
         // Counter labels
         $totalProducts = Product::count();
         $lowStocks = Product::where('Stocks', '<=', 2)->where('Stocks', '>', 0)->count();
         $noStocks = Product::where('Stocks', 0)->count();
         $products = Product::latest()->paginate(5);
+
+        if ($request->ajax()) {
+            return view('components.product-table', compact('products'))->render();
+        }
 
         // Build initial data for the 4 charts
         $chartData = $this->buildChartData($totalProducts, $lowStocks, $noStocks);
@@ -27,6 +31,7 @@ class DashboardController extends Controller
         return view('dashboard.home', compact('totalProducts', 'lowStocks', 'noStocks', 'products', 'chartData'));
     }
 
+    
     // AJAX endpoint for the "Refresh Charts" button
     public function chartData()
     {

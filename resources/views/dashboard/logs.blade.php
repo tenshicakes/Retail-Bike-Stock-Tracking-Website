@@ -7,7 +7,7 @@
     <div class="card shadow-sm border-0 rounded-4 mb-4">
         
         <div class="card-body p-4 bg-white rounded-4">
-            <form id="logsFilterForm" method="GET" action="/dashboard/logs" class="row g-3 align-items-end">
+            <form id="logsFilterForm" method="GET" action="/dashboard/logs" class="row g-3 align-items-end" data-selected-sub="{{ request('subcategory') }}">
                 
                 <div class="col-md-4">
                     <label class="form-label fw-bold text-muted">Filter by Category</label>
@@ -25,11 +25,13 @@
                     <label class="form-label fw-bold text-muted">Filter by SubCategory</label>
                     <select name="subcategory" id="cboSubCategory" class="form-select" {{ request('category') ? '' : 'disabled' }}>
                         <option value="">All Subcategories</option>
-                        </select>
+                    </select>
                 </div>
 
                 <div class="col-md-4 d-flex align-items-end">
-                    <a href="/dashboard/logs" class="btn btn-light border fw-bold text-danger w-100"><i class="bi bi-x-circle me-1"></i> Reset</a>
+                    <button type="button" id="btnResetLogs" class="btn btn-light border fw-bold text-danger w-100">
+                        <i class="bi bi-x-circle me-1"></i> Reset
+                    </button>
                 </div>
 
             </form>
@@ -45,6 +47,5 @@
 @push('scripts')
 @vite('resources/js/log-page.js')
 @endpush
-    
 
 </x-layout>

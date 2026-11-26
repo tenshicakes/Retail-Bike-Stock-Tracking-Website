@@ -11,24 +11,25 @@ class LogController extends Controller
 {
     public function index(Request $request)
     {
-        // Category 
         $categories = Product::select('Category')->distinct()->whereNotNull('Category')->pluck('Category');
 
         $query = Log::with(['product', 'account'])->latest('LogDate');
 
         if ($request->filled('category')) {
-            // whereHas filter the logs based on the product's category
             $query->whereHas('product', function ($q) use ($request) {
                 $q->where('Category', $request->category);
-                
+
                 if ($request->filled('subcategory')) {
                     $q->where('SubCategory', $request->subcategory);
                 }
             });
         }
 
-        // paginate
-        $logs = $query->paginate(5)->withQueryString(); 
+        $logs = $query->paginate(5)->withQueryString();
+
+        if ($request->ajax()) {
+            return view('components.log-table', compact('logs'))->render();
+        }
 
         return view('dashboard.logs', compact('logs', 'categories'));
     }
