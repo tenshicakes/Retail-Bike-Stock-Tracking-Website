@@ -22,7 +22,12 @@ php artisan db:seed --class=ProductSeeder
 # 7. Install frontend dependencies
 npm install
 
+ADDITIONAL:
+php artisan storage:link
 
+FOR ANY ERRORS:
+php artisan optimize:clear 
+php artisan cache:clear
 # 8. Start the application
 composer run dev (all in one command for npm run build, php artisan serve, etc)
 # App runs at http://127.0.0.1:8000
