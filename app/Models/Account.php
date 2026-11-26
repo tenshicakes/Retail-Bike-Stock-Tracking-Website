@@ -10,6 +10,8 @@ use Illuminate\Notifications\Notifiable;
  * @property string $Username
  * @property string $Password
  * @property string $Role
+ * @property string|null $two_factor_secret
+ * @property \Illuminate\Support\Carbon|null $two_factor_confirmed_at
  */
 class Account extends Authenticatable
 {
@@ -22,17 +24,37 @@ class Account extends Authenticatable
         'Username',
         'Password',
         'Role',
+        'two_factor_secret',
+        'two_factor_confirmed_at',
     ];
 
     protected $hidden = [
         'Password',
+        'two_factor_secret',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'two_factor_secret' => 'encrypted',
+            'two_factor_confirmed_at' => 'datetime',
+        ];
+    }
+
+    public function hasTwoFactorEnabled(): bool
+    {
+        return ! empty($this->two_factor_secret) && ! is_null($this->two_factor_confirmed_at);
+    }
 
     public function hasRole(array|string $roles): bool
     {
         $roles = (array) $roles;
 
-        return in_array(strtoupper(trim((string) $this->Role)), array_map(fn ($role) => strtoupper(trim((string) $role)), $roles), true);
+        return in_array(
+            strtoupper(trim((string) $this->Role)),
+            array_map(fn ($role) => strtoupper(trim((string) $role)), $roles),
+            true
+        );
     }
 
     public function canAccessPage(string $page): bool
@@ -53,7 +75,6 @@ class Account extends Authenticatable
         return $this->hasRole(['Administrator', 'Owner']);
     }
 
-    
     public function getAuthPassword()
     {
         return $this->Password;

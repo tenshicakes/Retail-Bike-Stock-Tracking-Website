@@ -270,3 +270,43 @@ $(document).ready(function () {
         });
     });
 });
+
+// Per-Row Administrator 2FA Reset
+    let accountIdToReset2fa = null;
+
+    $(document).on('click', '.btn-reset-2fa', function () {
+        const targetId = String($(this).data('id') || '');
+        if (targetId === currentUserId) {
+            showAlert('Action Not Allowed', 'Manage your own 2FA in Profile & Settings.', 'error');
+            return;
+        }
+
+        accountIdToReset2fa = targetId;
+        $('#reset2faUsername').text($(this).data('username'));
+        new bootstrap.Modal(document.getElementById('reset2faConfirmModal')).show();
+    });
+
+    $('#btnConfirmReset2fa').on('click', function () {
+        if (!accountIdToReset2fa) return;
+
+        const btn = $(this);
+        btn.prop('disabled', true).text('Resetting...');
+
+        $.ajax({
+            url: `/dashboard/accounts/${accountIdToReset2fa}/reset-2fa`,
+            method: 'POST',
+            data: { _token: csrfToken },
+            success: function (res) {
+                bootstrap.Modal.getInstance(document.getElementById('reset2faConfirmModal'))?.hide();
+                btn.prop('disabled', false).html('<i class="bi bi-arrow-counterclockwise me-1"></i> Reset 2FA');
+                showAlert('2FA Reset', res.message || 'Two-Factor Authentication has been reset.', 'success');
+                setTimeout(() => window.location.reload(), 700);
+            },
+            error: function (xhr) {
+                bootstrap.Modal.getInstance(document.getElementById('reset2faConfirmModal'))?.hide();
+                btn.prop('disabled', false).html('<i class="bi bi-arrow-counterclockwise me-1"></i> Reset 2FA');
+                const message = xhr.responseJSON?.message || 'Unable to reset 2FA for this account.';
+                showAlert('Reset Failed', message, 'error');
+            }
+        });
+    });

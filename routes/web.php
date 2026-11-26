@@ -14,6 +14,8 @@ use App\Http\Controllers\BackupController;
 Route::middleware('guest')->group(function () {
     Route::get('/', [AuthController::class, 'showLogin'])->name('login');
     Route::post('/login', [AuthController::class, 'authenticate']);
+    Route::post('/login/2fa', [AuthController::class, 'verifyTwoFactor'])->name('login.2fa.verify');
+    Route::post('/login/2fa/cancel', [AuthController::class, 'cancelTwoFactor'])->name('login.2fa.cancel');
     Route::post('/register', [AuthController::class, 'register'])->name('register');
     Route::get('/captcha/refresh', [AuthController::class, 'refreshCaptcha'])->name('captcha.refresh');
 });
@@ -29,6 +31,9 @@ Route::middleware(['auth', PreventBackHistory::class])->group(function () {
     Route::put('/dashboard/profile/info', [ProfileController::class, 'updateInfo'])->name('profile.updateInfo');
     Route::put('/dashboard/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.updatePassword');
     Route::post('/dashboard/profile/logout-sessions', [ProfileController::class, 'logoutOtherSessions'])->name('profile.logoutSessions');
+    Route::post('/dashboard/profile/2fa/setup', [ProfileController::class, 'setupTwoFactor'])->name('profile.2fa.setup');
+    Route::post('/dashboard/profile/2fa/enable', [ProfileController::class, 'enableTwoFactor'])->name('profile.2fa.enable');
+    Route::post('/dashboard/profile/2fa/disable', [ProfileController::class, 'disableTwoFactor'])->name('profile.2fa.disable');
 
     Route::get('/dashboard/products', [ProductController::class, 'index'])->middleware('role:Administrator,Owner,Staff,Mechanic');
     Route::post('/dashboard/products', [ProductController::class, 'store'])->middleware('role:Administrator,Owner');
@@ -51,6 +56,7 @@ Route::middleware(['auth', PreventBackHistory::class])->group(function () {
         Route::get('/dashboard/accounts', [AccountController::class, 'index']);
         Route::post('/dashboard/accounts', [AccountController::class, 'store']);
         Route::put('/dashboard/accounts/{account}', [AccountController::class, 'update']);
+        Route::post('/dashboard/accounts/{account}/reset-2fa', [AccountController::class, 'resetTwoFactor'])->name('accounts.reset2fa');
         Route::delete('/dashboard/accounts', [AccountController::class, 'destroy']);
 
         Route::get('/dashboard/backup', [BackupController::class, 'index'])->name('backup.index');
@@ -58,8 +64,6 @@ Route::middleware(['auth', PreventBackHistory::class])->group(function () {
         Route::get('/dashboard/backup/download/{filename}', [BackupController::class, 'download'])->name('backup.download');
         Route::delete('/dashboard/backup/{filename}', [BackupController::class, 'destroy'])->name('backup.destroy');
         Route::post('/dashboard/backup/restore', [BackupController::class, 'restore'])->name('backup.restore');
-        
-
     });
 
     Route::get('/logout', [AuthController::class, 'logout']);

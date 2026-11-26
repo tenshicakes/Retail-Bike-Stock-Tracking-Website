@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use PragmaRX\Google2FA\Google2FA;
 
 class AuthController extends Controller
 {
@@ -29,21 +30,38 @@ class AuthController extends Controller
             }
         }
 
+        // Check if a user has passed password check and is awaiting 2FA verification
+        $twoFactorPending = false;
+        $twoFactorEmail = null;
+
+        if ($request->session()->has('2fa:user:id')) {
+            $expiresAt = (int) $request->session()->get('2fa:expires_at', 0);
+            $pendingUser = Account::find($request->session()->get('2fa:user:id'));
+
+            if ($pendingUser && $pendingUser->hasTwoFactorEnabled() && now()->timestamp <= $expiresAt) {
+                $twoFactorPending = true;
+                $twoFactorEmail = $pendingUser->Username;
+            } else {
+                $request->session()->forget(['2fa:user:id', '2fa:expires_at']);
+            }
+        }
+
         return view('login', [
             'captchaNum1' => $captcha['num1'],
             'captchaNum2' => $captcha['num2'],
             'lockoutRemaining' => $lockoutRemaining,
+            'twoFactorPending' => $twoFactorPending,
+            'twoFactorEmail' => $twoFactorEmail,
         ]);
     }
 
-    // Login Handler with 5-Attempt / 20-Second Persistent Lockout
+    // Login Handler with 5-Attempt / 20-Second Persistent Lockout + 2FA Check
     public function authenticate(Request $request)
     {
         $ip = $request->ip();
         $lockoutKey = "login_lockout_{$ip}";
         $attemptsKey = "login_attempts_{$ip}";
 
-        // Block login attempts immediately if still inside the 20-second lockout window
         if (Cache::has($lockoutKey)) {
             $remaining = max(1, (int) Cache::get($lockoutKey) - now()->timestamp);
 
@@ -66,29 +84,126 @@ class AuthController extends Controller
             return $this->handleFailedLogin($request, $attemptsKey, $lockoutKey, $validator->errors()->first());
         }
 
-        $credentials = [
-            'Username' => trim($request->email),
-            'password' => $request->password,
-        ];
+        $account = Account::where('Username', trim($request->email))->first();
 
-        if (Auth::attempt($credentials)) {
-            Cache::forget($attemptsKey);
-            Cache::forget($lockoutKey);
-
-            $request->session()->regenerate();
-
-            return redirect()->intended('/dashboard/home');
+        if (! $account || ! Hash::check($request->password, $account->Password)) {
+            return $this->handleFailedLogin(
+                $request,
+                $attemptsKey,
+                $lockoutKey,
+                'The provided email or password does not match our records.'
+            );
         }
 
-        return $this->handleFailedLogin(
-            $request,
-            $attemptsKey,
-            $lockoutKey,
-            'The provided email or password does not match our records.'
-        );
+        Cache::forget($attemptsKey);
+        Cache::forget($lockoutKey);
+
+        // If 2FA is enabled on this account (all roles), require 6-digit Microsoft Authenticator code first
+        if ($account->hasTwoFactorEnabled()) {
+            $request->session()->put('2fa:user:id', $account->UserID);
+            $request->session()->put('2fa:expires_at', now()->addMinutes(5)->timestamp);
+
+            return redirect()->route('login');
+        }
+
+        Auth::login($account);
+        $request->session()->regenerate();
+
+        return redirect()->intended('/dashboard/home');
     }
 
-    // Sign-Up Handler with Multiplication CAPTCHA & Default 'Staff' Role
+    // Verify 6-Digit Microsoft Authenticator Code on Login
+    public function verifyTwoFactor(Request $request)
+    {
+        $ip = $request->ip();
+        $lockoutKey = "login_lockout_{$ip}";
+        $attemptsKey = "login_attempts_{$ip}";
+
+        if (Cache::has($lockoutKey)) {
+            $remaining = max(1, (int) Cache::get($lockoutKey) - now()->timestamp);
+
+            return redirect()->route('login')
+                ->withErrors(['lockout' => "Too many failed attempts. Please wait {$remaining} seconds before trying again."]);
+        }
+
+        $userId = $request->session()->get('2fa:user:id');
+        $expiresAt = (int) $request->session()->get('2fa:expires_at', 0);
+
+        if (! $userId || now()->timestamp > $expiresAt) {
+            $request->session()->forget(['2fa:user:id', '2fa:expires_at']);
+
+            return redirect()->route('login')
+                ->withErrors(['login_error' => 'Your two-factor verification session expired. Please log in again.']);
+        }
+
+        $account = Account::find($userId);
+
+        if (! $account || ! $account->hasTwoFactorEnabled()) {
+            $request->session()->forget(['2fa:user:id', '2fa:expires_at']);
+
+            return redirect()->route('login')
+                ->withErrors(['login_error' => 'Two-factor authentication is no longer active for this account. Please log in again.']);
+        }
+
+        $cleanCode = preg_replace('/\s+/', '', (string) $request->input('code'));
+        $request->merge(['code' => $cleanCode]);
+
+        $validator = Validator::make($request->all(), [
+            'code' => ['required', 'digits:6'],
+        ], [
+            'code.required' => 'Please enter the 6-digit verification code from Microsoft Authenticator.',
+            'code.digits' => 'The verification code must be exactly 6 digits.',
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()->route('login')
+                ->withErrors(['two_factor_error' => $validator->errors()->first()]);
+        }
+
+        $google2fa = new Google2FA();
+        $isValid = $google2fa->verifyKey((string) $account->two_factor_secret, $cleanCode);
+
+        if (! $isValid) {
+            $attempts = (int) Cache::get($attemptsKey, 0) + 1;
+
+            if ($attempts >= 5) {
+                $unlockTimestamp = now()->addSeconds(20)->timestamp;
+                Cache::put($lockoutKey, $unlockTimestamp, 20);
+                Cache::forget($attemptsKey);
+                $request->session()->forget(['2fa:user:id', '2fa:expires_at']);
+
+                return redirect()->route('login')
+                    ->withErrors(['lockout' => 'Too many failed verification attempts. Please wait 20 seconds before trying again.']);
+            }
+
+            Cache::put($attemptsKey, $attempts, now()->addMinutes(5));
+            $remainingAttempts = 5 - $attempts;
+
+            return redirect()->route('login')
+                ->withErrors([
+                    'two_factor_error' => "Invalid 6-digit authenticator code. ({$remainingAttempts} attempt(s) remaining before lockout.)",
+                ]);
+        }
+
+        Cache::forget($attemptsKey);
+        Cache::forget($lockoutKey);
+        $request->session()->forget(['2fa:user:id', '2fa:expires_at']);
+
+        Auth::login($account);
+        $request->session()->regenerate();
+
+        return redirect()->intended('/dashboard/home');
+    }
+
+    // Cancel pending 2FA challenge and return to email/password login
+    public function cancelTwoFactor(Request $request)
+    {
+        $request->session()->forget(['2fa:user:id', '2fa:expires_at']);
+
+        return redirect()->route('login');
+    }
+
+    // Sign-Up Handler with Role Selection ('Staff' or 'Mechanic') & Multiplication CAPTCHA
     public function register(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -116,7 +231,6 @@ class AuthController extends Controller
                 ->with('active_tab', 'signup');
         }
 
-        // Verify CAPTCHA answer against session
         $expectedAnswer = (int) session('captcha_answer');
         if ((int) $request->captcha_answer !== $expectedAnswer) {
             return back()

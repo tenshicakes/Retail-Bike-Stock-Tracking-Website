@@ -133,4 +133,31 @@ class AccountController extends Controller
 
         return redirect('/dashboard/accounts')->with('success', 'Selected account(s) deleted successfully.');
     }
+
+    public function resetTwoFactor(Request $request, Account $account)
+    {
+        if ((int) $account->UserID === (int) Auth::id()) {
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'You cannot reset or disable your own 2FA from User Management. Please manage it in Profile & Settings.',
+                ], 422);
+            }
+
+            return redirect('/dashboard/accounts')->with('error', 'You cannot reset or disable your own 2FA from User Management.');
+        }
+
+        $account->two_factor_secret = null;
+        $account->two_factor_confirmed_at = null;
+        $account->save();
+
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json([
+                'status' => 'success',
+                'message' => "Two-Factor Authentication has been reset for {$account->Username}.",
+            ]);
+        }
+
+        return redirect('/dashboard/accounts')->with('success', "Two-Factor Authentication has been reset for {$account->Username}.");
+    }
 }

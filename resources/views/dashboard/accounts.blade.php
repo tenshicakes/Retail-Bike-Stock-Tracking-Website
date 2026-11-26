@@ -31,6 +31,34 @@
             </div>
         </div>
 
+        <!-- Reset 2FA Confirmation Modal -->
+        <div class="modal fade" id="reset2faConfirmModal" data-bs-backdrop="static" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header bg-light">
+                        <h5 class="modal-title fw-bold text-warning-emphasis">
+                            <i class="bi bi-shield-slash me-2"></i>Reset Two-Factor Authentication
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body p-4">
+                        <p class="mb-2">
+                            Are you sure you want to reset 2FA for <strong id="reset2faUsername"></strong>?
+                        </p>
+                        <p class="small text-muted mb-0">
+                            Their Microsoft Authenticator link will be removed, and they will be able to log in with their password until they set up 2FA again.
+                        </p>
+                    </div>
+                    <div class="modal-footer bg-light">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-warning fw-bold" id="btnConfirmReset2fa">
+                            <i class="bi bi-arrow-counterclockwise me-1"></i> Reset 2FA
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="card shadow-sm border-0 rounded-4 mb-4">
             <div class="card-body p-4 bg-white rounded-4">
                 <h1 class="pb-4 fw-bold">User Management</h1>
@@ -74,15 +102,18 @@
                                 <th class="selection-col d-none" style="width: 60px;">
                                     <input type="checkbox" id="selectAllAccounts" class="form-check-input" title="Select all">
                                 </th>
-                                <th style="width: 120px;">User ID</th>
+                                <th style="width: 110px;">User ID</th>
                                 <th>Username (Email)</th>
-                                <th style="width: 220px;">Role</th>
+                                <th style="width: 160px;">Role</th>
+                                <th style="width: 140px;">2FA Status</th>
+                                <th class="text-end pe-4" style="width: 160px;">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             @forelse($accounts as $account)
                                 @php
                                     $isCurrentUser = (int) $account->UserID === (int) Auth::id();
+                                    $has2fa = $account->hasTwoFactorEnabled();
                                 @endphp
                                 <tr data-id="{{ $account->UserID }}" data-username="{{ $account->Username }}" data-role="{{ $account->Role }}">
                                     <td class="selection-col d-none">
@@ -103,10 +134,37 @@
                                             {{ $account->Role }}
                                         </span>
                                     </td>
+                                    <td>
+                                        @if($has2fa)
+                                            <span class="badge bg-success-subtle text-success border px-2 py-1">
+                                                <i class="bi bi-shield-fill-check me-1"></i>Enabled
+                                            </span>
+                                        @else
+                                            <span class="badge bg-secondary-subtle text-secondary border px-2 py-1">
+                                                Disabled
+                                            </span>
+                                        @endif
+                                    </td>
+                                    <td class="text-end pe-4">
+                                        @if($isCurrentUser)
+                                            <span class="badge bg-light text-muted border px-2 py-1" title="Manage your own 2FA in Profile & Settings">
+                                                <i class="bi bi-person-lock me-1"></i>Manage in Profile
+                                            </span>
+                                        @else
+                                            <button type="button"
+                                                    class="btn btn-sm {{ $has2fa ? 'btn-outline-warning text-dark fw-semibold' : 'btn-outline-secondary' }} btn-reset-2fa"
+                                                    data-id="{{ $account->UserID }}"
+                                                    data-username="{{ $account->Username }}"
+                                                    {{ $has2fa ? '' : 'disabled' }}
+                                                    title="{{ $has2fa ? 'Reset 2FA for this account' : '2FA is not enabled for this user' }}">
+                                                <i class="bi bi-shield-slash me-1"></i> Reset 2FA
+                                            </button>
+                                        @endif
+                                    </td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="4" class="text-center text-muted py-4">No accounts found.</td>
+                                    <td colspan="6" class="text-center text-muted py-4">No accounts found.</td>
                                 </tr>
                             @endforelse
                         </tbody>
