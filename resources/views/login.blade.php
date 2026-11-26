@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Retail Bike Stock Tracking System</title>
+    <title>Login - {{ $systemSettings->system_name }}</title>
 
     @vite(['resources/css/app.scss', 'resources/js/app.js'])
 </head>
@@ -20,10 +20,10 @@
         <div class="row g-0 flex-grow-1">
             
             <div class="col-lg-6 bg-white d-flex flex-column align-items-center justify-content-center p-4 p-md-5 text-center">
-                <img src="{{ asset('images/JFM.png') }}" alt="Logo" class="logo mb-4">  
-                <h1 class="display-5 display-md-4 fw-bold text-dark">Alvin's Bike Repair Shop</h1>
-                <p class="text-muted mb-0 fs-6">Retail Bike Stock Tracking System</p>
-            </div>
+              <img src="{{ $systemSettings->logoUrl() }}" alt="Logo" class="logo mb-4">  
+              <h1 class="display-5 display-md-4 fw-bold text-dark">{{ $systemSettings->system_name }}</h1>
+              <p class="text-muted mb-0 fs-6">Retail Bike Stock Tracking System</p>
+          </div>
 
             <div class="col-lg-6 login-right-side d-flex align-items-center justify-content-center p-3 p-sm-4 p-md-5">
                 

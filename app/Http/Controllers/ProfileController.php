@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AccessLog;
 use App\Models\Log;
+use App\Models\SystemSetting;
 use BaconQrCode\Renderer\Image\SvgImageBackEnd;
 use BaconQrCode\Renderer\ImageRenderer;
 use BaconQrCode\Renderer\RendererStyle\RendererStyle;
@@ -10,6 +12,7 @@ use BaconQrCode\Writer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\ValidationException;
@@ -35,6 +38,83 @@ class ProfileController extends Controller
             'totalStockIns',
             'totalStockOuts'
         ));
+    }
+
+    public function updateAvatar(Request $request)
+    {
+        $request->validate([
+            'avatar' => ['required', 'image', 'mimes:png,jpg,jpeg,webp', 'max:2048'],
+        ], [
+            'avatar.required' => 'Please choose an image file to upload.',
+            'avatar.image' => 'The selected file must be a valid image.',
+            'avatar.mimes' => 'Profile picture must be a PNG, JPG, JPEG, or WEBP file.',
+            'avatar.max' => 'Profile picture must not exceed 2 MB.',
+        ]);
+
+        $user = Auth::user();
+        $avatarsDir = public_path('images/avatars');
+        File::ensureDirectoryExists($avatarsDir);
+
+        // Delete previous custom avatar if present
+        if (! empty($user->profile_picture) && str_starts_with($user->profile_picture, 'images/avatars/')) {
+            $oldFullPath = public_path($user->profile_picture);
+            if (File::exists($oldFullPath)) {
+                File::delete($oldFullPath);
+            }
+        }
+
+        $file = $request->file('avatar');
+        $filename = 'avatar_' . $user->UserID . '_' . now()->format('YmdHis') . '_' . bin2hex(random_bytes(3)) . '.' . $file->getClientOriginalExtension();
+        $file->move($avatarsDir, $filename);
+
+        $user->profile_picture = 'images/avatars/' . $filename;
+        $user->save();
+
+        AccessLog::record(
+            'Profile Picture Updated',
+            'Success',
+            $user->Username,
+            $user->UserID,
+            'Uploaded a new profile picture.',
+            $request
+        );
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Profile picture updated successfully!',
+            'avatar_url' => $user->profilePictureUrl(),
+            'initial' => $user->initial(),
+        ]);
+    }
+
+    public function removeAvatar(Request $request)
+    {
+        $user = Auth::user();
+
+        if (! empty($user->profile_picture) && str_starts_with($user->profile_picture, 'images/avatars/')) {
+            $oldFullPath = public_path($user->profile_picture);
+            if (File::exists($oldFullPath)) {
+                File::delete($oldFullPath);
+            }
+        }
+
+        $user->profile_picture = null;
+        $user->save();
+
+        AccessLog::record(
+            'Profile Picture Removed',
+            'Success',
+            $user->Username,
+            $user->UserID,
+            'Removed profile picture and reverted to default initial badge.',
+            $request
+        );
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Profile picture removed.',
+            'initial' => $user->initial(),
+        ]);
     }
 
     public function updateInfo(Request $request)
@@ -66,6 +146,7 @@ class ProfileController extends Controller
             'status' => 'success',
             'message' => 'Profile email updated successfully!',
             'username' => $user->Username,
+            'initial' => $user->initial(),
         ]);
     }
 
@@ -128,7 +209,6 @@ class ProfileController extends Controller
         ]);
     }
 
-    // Generate a secret key & QR code for Microsoft Authenticator setup
     public function setupTwoFactor(Request $request)
     {
         $user = Auth::user();
@@ -146,7 +226,7 @@ class ProfileController extends Controller
         $request->session()->put('two_factor_setup_secret', $secret);
 
         $otpAuthUrl = $google2fa->getQRCodeUrl(
-            "Alvin's Bike Repair Shop",
+            SystemSetting::current()->system_name,
             $user->Username,
             $secret
         );
@@ -165,7 +245,6 @@ class ProfileController extends Controller
         ]);
     }
 
-    // Verify the initial 6-digit code from Microsoft Authenticator and activate 2FA
     public function enableTwoFactor(Request $request)
     {
         $user = Auth::user();
@@ -216,7 +295,6 @@ class ProfileController extends Controller
         ]);
     }
 
-    // Disable 2FA after confirming the user's current password
     public function disableTwoFactor(Request $request)
     {
         $user = Auth::user();

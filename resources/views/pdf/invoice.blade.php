@@ -28,15 +28,17 @@
 
     <div class="header">
         <div class="shop-info">
-            <h1>Alvin's Bike Repair Shop</h1>
+            <h1>{{ $systemSettings->system_name }}</h1>
             <p>123 Hub Trail Road<br>
             Mountain View, CA 94043<br>
             Phone: (555) 123-4567</p>
         </div>
         <div class="logo-container">
-            
-            <h3>TRANSACTION INVOICE</h3>
-            <p>Date: {{ now()->format('F j, Y') }}</p>
+            @if($systemSettings->logoDataUri())
+                <img src="{{ $systemSettings->logoDataUri() }}" alt="Logo" style="margin-bottom: 8px;">
+            @endif
+            <h3 style="margin: 0;">TRANSACTION INVOICE</h3>
+            <p style="margin: 4px 0 0;">Date: {{ now()->format('F j, Y') }}</p>
         </div>
         <div class="clear"></div>
     </div>

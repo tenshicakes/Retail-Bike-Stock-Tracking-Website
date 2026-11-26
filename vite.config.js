@@ -13,6 +13,8 @@ export default defineConfig({
                 "resources/js/nostock-page.js",
                 "resources/js/lowstock-page.js",
                 "resources/js/log-page.js",
+                "resources/js/audit-logs-page.js",
+                "resources/js/system-settings-page.js",
             ],
             refresh: true,
         }),

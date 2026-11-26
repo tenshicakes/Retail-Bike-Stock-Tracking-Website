@@ -4,12 +4,14 @@ namespace App\Models;
 
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\File;
 
 /**
  * @property int $UserID
  * @property string $Username
  * @property string $Password
  * @property string $Role
+ * @property string|null $profile_picture
  * @property string|null $two_factor_secret
  * @property \Illuminate\Support\Carbon|null $two_factor_confirmed_at
  */
@@ -24,6 +26,7 @@ class Account extends Authenticatable
         'Username',
         'Password',
         'Role',
+        'profile_picture',
         'two_factor_secret',
         'two_factor_confirmed_at',
     ];
@@ -39,6 +42,25 @@ class Account extends Authenticatable
             'two_factor_secret' => 'encrypted',
             'two_factor_confirmed_at' => 'datetime',
         ];
+    }
+
+    public function hasProfilePicture(): bool
+    {
+        return ! empty($this->profile_picture) && File::exists(public_path($this->profile_picture));
+    }
+
+    public function profilePictureUrl(): ?string
+    {
+        if ($this->hasProfilePicture()) {
+            return asset($this->profile_picture);
+        }
+
+        return null;
+    }
+
+    public function initial(): string
+    {
+        return strtoupper(substr((string) $this->Username, 0, 1));
     }
 
     public function hasTwoFactorEnabled(): bool
@@ -63,8 +85,8 @@ class Account extends Authenticatable
 
         return match ($page) {
             'home', 'products' => true,
-            'accounts', 'backup' => $role === 'ADMINISTRATOR',
-            'lowstock', 'nostock' => in_array($role, ['ADMINISTRATOR', 'OWNER'], true),
+            'accounts', 'backup', 'audit-logs' => $role === 'ADMINISTRATOR',
+            'lowstock', 'nostock', 'system-settings' => in_array($role, ['ADMINISTRATOR', 'OWNER'], true),
             'logs' => in_array($role, ['ADMINISTRATOR', 'OWNER', 'STAFF'], true),
             default => true,
         };

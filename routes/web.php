@@ -9,6 +9,8 @@ use App\Http\Controllers\LogController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\BackupController;
+use App\Http\Controllers\AuditLogsController;
+use App\Http\Controllers\SystemSettingsController;
 
 // --- GUEST ROUTES  ---
 Route::middleware('guest')->group(function () {
@@ -34,6 +36,17 @@ Route::middleware(['auth', PreventBackHistory::class])->group(function () {
     Route::post('/dashboard/profile/2fa/setup', [ProfileController::class, 'setupTwoFactor'])->name('profile.2fa.setup');
     Route::post('/dashboard/profile/2fa/enable', [ProfileController::class, 'enableTwoFactor'])->name('profile.2fa.enable');
     Route::post('/dashboard/profile/2fa/disable', [ProfileController::class, 'disableTwoFactor'])->name('profile.2fa.disable');
+    Route::get('/dashboard/profile', [ProfileController::class, 'index'])->name('profile.index');
+    
+    Route::put('/dashboard/profile/info', [ProfileController::class, 'updateInfo'])->name('profile.updateInfo');
+    Route::put('/dashboard/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.updatePassword');
+    Route::post('/dashboard/profile/avatar', [ProfileController::class, 'updateAvatar'])->name('profile.avatar.update');
+    Route::delete('/dashboard/profile/avatar', [ProfileController::class, 'removeAvatar'])->name('profile.avatar.remove');
+    Route::post('/dashboard/profile/logout-sessions', [ProfileController::class, 'logoutOtherSessions'])->name('profile.logoutSessions');
+    Route::post('/dashboard/profile/2fa/setup', [ProfileController::class, 'setupTwoFactor'])->name('profile.2fa.setup');
+    Route::post('/dashboard/profile/2fa/enable', [ProfileController::class, 'enableTwoFactor'])->name('profile.2fa.enable');
+    Route::post('/dashboard/profile/2fa/disable', [ProfileController::class, 'disableTwoFactor'])->name('profile.2fa.disable');
+
 
     Route::get('/dashboard/products', [ProductController::class, 'index'])->middleware('role:Administrator,Owner,Staff,Mechanic');
     Route::post('/dashboard/products', [ProductController::class, 'store'])->middleware('role:Administrator,Owner');
@@ -50,6 +63,10 @@ Route::middleware(['auth', PreventBackHistory::class])->group(function () {
         Route::get('/api/lowstock/search', [ProductController::class, 'lowStockSearch']);
         Route::get('/dashboard/nostock', [ProductController::class, 'noStockIndex']);
         Route::get('/api/nostock/search', [ProductController::class, 'noStockSearch']);
+
+        Route::get('/dashboard/system-settings', [SystemSettingsController::class, 'index'])->name('system-settings.index');
+        Route::post('/dashboard/system-settings', [SystemSettingsController::class, 'update'])->name('system-settings.update');
+        Route::post('/dashboard/system-settings/reset-logo', [SystemSettingsController::class, 'resetLogo'])->name('system-settings.resetLogo');
     });
 
     Route::middleware('role:Administrator')->group(function () {
@@ -64,7 +81,12 @@ Route::middleware(['auth', PreventBackHistory::class])->group(function () {
         Route::get('/dashboard/backup/download/{filename}', [BackupController::class, 'download'])->name('backup.download');
         Route::delete('/dashboard/backup/{filename}', [BackupController::class, 'destroy'])->name('backup.destroy');
         Route::post('/dashboard/backup/restore', [BackupController::class, 'restore'])->name('backup.restore');
-    });
+    
+        Route::get('/dashboard/audit-logs', [AuditLogsController::class, 'index'])->name('audit-logs.index');
+        Route::delete('/dashboard/audit-logs/access', [AuditLogsController::class, 'clearAccessLogs'])->name('audit-logs.access.clear');
+        Route::delete('/dashboard/audit-logs/error', [AuditLogsController::class, 'clearErrorLogs'])->name('audit-logs.error.clear');
+    
+        });
 
     Route::get('/logout', [AuthController::class, 'logout']);
 });

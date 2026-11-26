@@ -2,23 +2,53 @@
 
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
         <div>
-            <h1 class="fw-bold text-dark m-0">Profile & Settings</h1>
-            <p class="text-muted mb-0">Manage your account credentials, security preferences, and view your role permissions.</p>
+            <h1 class="fw-bold text-dark m-0">Profile &amp; Settings</h1>
+            <p class="text-muted mb-0">Manage your profile picture, account credentials, security preferences, and role permissions.</p>
         </div>
     </div>
 
     <div class="row g-4">
         
-        <!-- LEFT COLUMN: USER CARD, ACTIVITY STATS & ROLE PERMISSIONS -->
+        <!-- LEFT COLUMN: USER CARD, AVATAR UPLOAD, ACTIVITY STATS & ROLE PERMISSIONS -->
         <div class="col-lg-4">
             
             <!-- Profile Summary Card -->
             <div class="card shadow-sm border-0 rounded-4 mb-4">
                 <div class="card-body p-4 text-center">
-                    <div class="rounded-circle d-inline-flex align-items-center justify-content-center text-white fw-bold mb-3 shadow-sm"
-                         id="profileAvatarInitial"
-                         style="width: 80px; height: 80px; font-size: 2rem; background-color: rgb(12, 17, 44);">
-                        {{ strtoupper(substr($user->Username, 0, 1)) }}
+                    @php
+                        $avatarUrl = $user->profilePictureUrl();
+                    @endphp
+
+                    <!-- Avatar Display (Image or Initial Fallback) -->
+                    <div class="position-relative d-inline-block mb-3">
+                        <img src="{{ $avatarUrl ?? '' }}"
+                             alt="Profile Picture"
+                             id="profileAvatarImg"
+                             class="rounded-circle shadow-sm border {{ $avatarUrl ? '' : 'd-none' }}"
+                             style="width: 92px; height: 92px; object-fit: cover;">
+
+                        <div class="rounded-circle d-inline-flex align-items-center justify-content-center text-white fw-bold shadow-sm {{ $avatarUrl ? 'd-none' : '' }}"
+                             id="profileAvatarInitial"
+                             style="width: 92px; height: 92px; font-size: 2.2rem; background-color: rgb(12, 17, 44);">
+                            {{ $user->initial() }}
+                        </div>
+                    </div>
+
+                    <!-- Hidden File Input & Instant AJAX Avatar Controls -->
+                    <input type="file" id="profileAvatarInput" accept="image/png,image/jpeg,image/webp" class="d-none">
+
+                    <div class="d-flex justify-content-center gap-2 mb-3">
+                        <button type="button" class="btn btn-sm btn-outline-dark rounded-pill px-3 fw-semibold" id="btnChooseAvatar">
+                            <i class="bi bi-camera me-1"></i> Upload Photo
+                        </button>
+                        <button type="button"
+                                class="btn btn-sm btn-outline-danger rounded-pill px-3 fw-semibold {{ $avatarUrl ? '' : 'd-none' }}"
+                                id="btnRemoveAvatar">
+                            <i class="bi bi-trash3 me-1"></i> Remove
+                        </button>
+                    </div>
+                    <div class="small text-muted mb-3" style="font-size: 0.74rem;">
+                        PNG, JPG, JPEG, or WEBP (Max 2 MB)
                     </div>
 
                     <h5 class="fw-bold text-dark mb-1 text-break" id="profileDisplayEmail">{{ $user->Username }}</h5>
@@ -78,12 +108,12 @@
             <!-- Role Access & Permissions Card -->
             <div class="card shadow-sm border-0 rounded-4">
                 <div class="card-header bg-white border-bottom px-4 py-3">
-                    <h6 class="m-0 fw-bold text-dark"><i class="bi bi-shield-check me-2 text-primary"></i>Role Access & Permissions</h6>
+                    <h6 class="m-0 fw-bold text-dark"><i class="bi bi-shield-check me-2 text-primary"></i>Role Access &amp; Permissions</h6>
                 </div>
                 <div class="card-body p-4">
                     <ul class="list-unstyled mb-0 d-flex flex-column gap-2 small">
                         <li class="d-flex justify-content-between align-items-center">
-                            <span>Dashboard & Products View</span>
+                            <span>Dashboard &amp; Products View</span>
                             <span class="badge bg-success-subtle text-success border">Allowed</span>
                         </li>
                         <li class="d-flex justify-content-between align-items-center">
@@ -99,7 +129,7 @@
                             @endif
                         </li>
                         <li class="d-flex justify-content-between align-items-center">
-                            <span>Low Stock & No Stock Alerts</span>
+                            <span>Low Stock &amp; No Stock Alerts</span>
                             @if($user->canAccessPage('lowstock'))
                                 <span class="badge bg-success-subtle text-success border">Allowed</span>
                             @else
@@ -107,7 +137,7 @@
                             @endif
                         </li>
                         <li class="d-flex justify-content-between align-items-center">
-                            <span>Activity Logs & PDF Export</span>
+                            <span>Activity Logs &amp; PDF Export</span>
                             @if($user->canAccessPage('logs'))
                                 <span class="badge bg-success-subtle text-success border">Allowed</span>
                             @else
@@ -115,7 +145,15 @@
                             @endif
                         </li>
                         <li class="d-flex justify-content-between align-items-center">
-                            <span>Account Management</span>
+                            <span>System Settings (Branding)</span>
+                            @if($user->canAccessPage('system-settings'))
+                                <span class="badge bg-success-subtle text-success border">Allowed</span>
+                            @else
+                                <span class="badge bg-secondary-subtle text-secondary border">Restricted</span>
+                            @endif
+                        </li>
+                        <li class="d-flex justify-content-between align-items-center">
+                            <span>Account Management &amp; Audit Logs</span>
                             @if($user->canAccessPage('accounts'))
                                 <span class="badge bg-success-subtle text-success border">Allowed</span>
                             @else
@@ -342,6 +380,93 @@
 @push('scripts')
 <script type="module">
     $(document).ready(function() {
+        const csrfToken = '{{ csrf_token() }}';
+
+        // --- 0. Profile Picture Instant AJAX Upload & Removal ---
+        $('#btnChooseAvatar').on('click', function() {
+            $('#profileAvatarInput').trigger('click');
+        });
+
+        $('#profileAvatarInput').on('change', function() {
+            const file = this.files && this.files[0];
+            if (!file) return;
+
+            const btn = $('#btnChooseAvatar');
+            btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span>Uploading...');
+
+            const formData = new FormData();
+            formData.append('_token', csrfToken);
+            formData.append('avatar', file);
+
+            $.ajax({
+                url: '{{ route("profile.avatar.update") }}',
+                method: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function(res) {
+                    $('#profileAvatarImg, #navbarAvatarImg')
+                        .attr('src', res.avatar_url)
+                        .removeClass('d-none');
+                    $('#profileAvatarInitial, #navbarAvatarInitial').addClass('d-none');
+                    $('#btnRemoveAvatar').removeClass('d-none');
+                    $('#profileAvatarInput').val('');
+
+                    if (window.showToast) {
+                        window.showToast(res.message, 'success');
+                    }
+                },
+                error: function(xhr) {
+                    $('#profileAvatarInput').val('');
+                    const errors = xhr.responseJSON?.errors || {};
+                    const msg = errors.avatar
+                        ? errors.avatar[0]
+                        : (xhr.responseJSON?.message || 'Failed to upload profile picture.');
+                    if (window.showToast) {
+                        window.showToast(msg, 'error');
+                    }
+                },
+                complete: function() {
+                    btn.prop('disabled', false).html('<i class="bi bi-camera me-1"></i> Upload Photo');
+                }
+            });
+        });
+
+        $('#btnRemoveAvatar').on('click', function() {
+            if (!confirm('Remove your profile picture?')) return;
+
+            const btn = $(this);
+            btn.prop('disabled', true);
+
+            $.ajax({
+                url: '{{ route("profile.avatar.remove") }}',
+                method: 'POST',
+                data: {
+                    _token: csrfToken,
+                    _method: 'DELETE'
+                },
+                success: function(res) {
+                    $('#profileAvatarImg, #navbarAvatarImg').addClass('d-none').attr('src', '');
+                    $('#profileAvatarInitial, #navbarAvatarInitial')
+                        .text(res.initial)
+                        .removeClass('d-none');
+                    btn.addClass('d-none');
+
+                    if (window.showToast) {
+                        window.showToast(res.message, 'success');
+                    }
+                },
+                error: function() {
+                    if (window.showToast) {
+                        window.showToast('Failed to remove profile picture.', 'error');
+                    }
+                },
+                complete: function() {
+                    btn.prop('disabled', false);
+                }
+            });
+        });
+
         // Show / Hide Password Toggle
         $('.toggle-password').on('click', function() {
             const target = $($(this).data('target'));
@@ -369,7 +494,7 @@
                 success: function(res) {
                     btn.prop('disabled', false).html('<i class="bi bi-check-circle-fill me-1"></i> Save Changes');
                     $('#profileDisplayEmail, #navbarUserEmail, #navbarUserEmailMobile').text(res.username);
-                    $('#profileAvatarInitial').text(res.username.charAt(0).toUpperCase());
+                    $('#profileAvatarInitial, #navbarAvatarInitial').text(res.initial);
 
                     if (window.showToast) {
                         window.showToast(res.message, 'success');
@@ -429,7 +554,7 @@
             $.ajax({
                 url: '{{ route("profile.2fa.setup") }}',
                 method: 'POST',
-                data: { _token: '{{ csrf_token() }}' },
+                data: { _token: csrfToken },
                 success: function(res) {
                     btn.prop('disabled', false).html('<i class="bi bi-qr-code-scan me-2"></i> Enable Two-Factor Authentication');
                     $('#twoFactorQrBox').html(res.qr_svg);

@@ -94,7 +94,7 @@
                 </div>
             </div>
 
-            <!-- Keep ONLY this container and component -->
+            <!-- t -->
             <div class="card-body p-0" id="accountsTableContainer">
                 <x-accounts-table :accounts="$accounts" />
             </div>
